@@ -81,6 +81,15 @@ Responsibilities:
 - Store raw payloads with provider, retrieval timestamp, event timestamp, and schema version.
 - Detect duplicates, missingness, stale data, and provider corrections.
 
+Current provider boundary:
+
+- `FootballDataCsvAdapter` for private historical CSV backfills.
+- `OddsApiAdapter` for authenticated current bookmaker snapshots.
+- `FileRawSnapshotStore` for immutable local payload/checksum storage during development.
+- `ProviderRegistry` for coverage, licensing, rate-limit, and retention metadata.
+
+These adapters do not grant redistribution rights. Production ingestion still requires account verification, licensing review, identity resolution, and durable storage.
+
 ### Feature Pipeline
 
 Responsibilities:

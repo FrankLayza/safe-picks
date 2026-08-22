@@ -63,6 +63,7 @@ The project is not ready for real-money use until it demonstrates, on untouched 
 - TypeScript Telegram bot scaffold exists with `/safe_bets`, `/trim`, `/slip`, and `/help`.
 - Python FastAPI forecasting boundary exists with deterministic development candidates.
 - Shared contracts, environment template, and workspace tooling exist.
+- Phase 3 provider boundary exists for Football-Data.co.uk historical CSVs, The Odds API snapshots, raw file snapshots, and provider metadata.
 - No live provider, trained model, database, paper-trading ledger, or bookmaker integration has been implemented.
 
 ## Key Risks

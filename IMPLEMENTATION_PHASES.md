@@ -65,16 +65,17 @@ Exit criteria: Candidates are evaluated by the shared decision layer and are eit
 
 PRD coverage: FR-09, FR-10
 
-- [ ] Select one permitted football results/fixtures source.
-- [ ] Select one permitted odds source with historical or timestamped access.
-- [ ] Define provider registry, license status, rate limits, and retention rules.
-- [ ] Ingest fixtures and results into immutable raw snapshots.
-- [ ] Ingest odds with bookmaker, line, selection, observed-at, and source metadata.
+- [x] Select one permitted football results/fixtures source for research backfill: Football-Data.co.uk, subject to licence review.
+- [x] Select one permitted odds source for current snapshots: The Odds API, subject to account and plan verification.
+- [x] Define provider registry, license status, rate limits, and retention rules.
+- [~] Normalize Football-Data CSV fixtures/results/stats in memory; persistent ingestion is not implemented.
+- [~] Normalize The Odds API bookmaker quotes with event and bookmaker timestamps; scheduled ingestion is not implemented.
+- [~] Save immutable raw payloads to the local file snapshot store; PostgreSQL/object storage is not implemented.
 - [ ] Add identity resolution for teams, competitions, fixtures, and markets.
 - [ ] Add freshness, missingness, duplicate, and correction checks.
 - [ ] Add historical replay so features can be reconstructed as-of any forecast time.
 
-Exit criteria: A historical fixture and odds record can be reproduced exactly from permitted source snapshots.
+Exit criteria: A historical fixture and odds record can be reproduced exactly from saved source snapshots and normalized into the canonical schema. Current adapter tests cover parsing and snapshots; provider licence/account verification and durable ingestion remain.
 
 ## Phase 4: Football Feature Pipeline
 
@@ -178,7 +179,7 @@ Exit criteria: Release approval is evidence-based and does not depend on a headl
 | FR-06 Help and wording | Phase 1 | `[x]` command and warnings exist |
 | FR-07 Abstention | Phase 1, Phase 2, Phase 6 | `[~]` empty-set and gate rejection exist; production calibration gates remain unvalidated |
 | FR-08 Paper ledger | Phase 7 | `[ ]` |
-| FR-09 Permitted ingestion | Phase 3 | `[ ]` |
+| FR-09 Permitted ingestion | Phase 3 | `[~]` provider boundary and parsing exist; licence and durable ingestion remain |
 | FR-10 Leakage prevention | Phase 4, Phase 5 | `[ ]` |
 | FR-11 Model evaluation | Phase 5, Phase 7 | `[ ]` |
 | FR-12 SportyBet boundary | Phase 8 | `[ ]` |
