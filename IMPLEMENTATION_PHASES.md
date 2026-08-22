@@ -50,16 +50,16 @@ Exit criteria: Core commands work against the development service contract and p
 
 PRD coverage: FR-01, FR-02, FR-07, FR-12
 
-- [~] Define shared candidate and slip types.
-- [~] Return multiple development market candidates.
+- [x] Define shared candidate, quote, decision, and slip types.
+- [x] Return multiple development market candidates with decision metadata.
 - [ ] Add market registry with market-specific settlement rules.
-- [ ] Add candidate eligibility gates for data completeness, freshness, calibration, and distribution shift.
-- [ ] Add explicit abstention and rejection reason codes.
-- [ ] Add value calculation using de-vigged market probabilities and configurable costs.
-- [ ] Add correlation groups and duplicate-market suppression.
+- [x] Add candidate eligibility gates for data completeness, freshness, calibration, and distribution shift.
+- [x] Add explicit abstention and rejection reason codes.
+- [x] Add value calculation using de-vigged market probabilities and a configurable minimum edge.
+- [x] Add correlation groups and duplicate-market suppression.
 - [ ] Add adapter interface for future bookmaker integrations.
 
-Exit criteria: Every candidate is either eligible with auditable metadata or rejected with a machine-readable reason.
+Exit criteria: Candidates are evaluated by the shared decision layer and are either eligible with fair-price metadata or rejected with a machine-readable reason. Market settlement registry and bookmaker adapter remain open.
 
 ## Phase 3: Permitted Data Ingestion
 
@@ -170,13 +170,13 @@ Exit criteria: Release approval is evidence-based and does not depend on a headl
 
 | PRD requirement | Primary phase | Current status |
 |---|---|---|
-| FR-01 Multi-market candidates | Phase 2, Phase 6 | `[~]` development mock only |
-| FR-02 Forecast metadata | Phase 2, Phase 5 | `[~]` contract fields exist; no real model |
+| FR-01 Multi-market candidates | Phase 2, Phase 6 | `[~]` development mock only; decision layer is implemented |
+| FR-02 Forecast metadata | Phase 2, Phase 5 | `[x]` contract and decision metadata exist; no real model |
 | FR-03 Safe-bets draft | Phase 1 | `[x]` works with mock candidates and tested selection behavior |
 | FR-04 Risk trimming | Phase 1, Phase 6 | `[~]` basic scaffold only |
 | FR-05 Slip inspection | Phase 1 | `[x]` works with in-memory draft and tested calculations |
 | FR-06 Help and wording | Phase 1 | `[x]` command and warnings exist |
-| FR-07 Abstention | Phase 1, Phase 2, Phase 6 | `[~]` empty-set abstention is tested; eligibility gates are not implemented |
+| FR-07 Abstention | Phase 1, Phase 2, Phase 6 | `[~]` empty-set and gate rejection exist; production calibration gates remain unvalidated |
 | FR-08 Paper ledger | Phase 7 | `[ ]` |
 | FR-09 Permitted ingestion | Phase 3 | `[ ]` |
 | FR-10 Leakage prevention | Phase 4, Phase 5 | `[ ]` |

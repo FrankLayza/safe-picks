@@ -23,11 +23,17 @@ class MarketCandidate(BaseModel):
     selection: str
     line: float | None = None
     odds: float = Field(gt=1)
+    marketQuotes: list[dict[str, float | str]] = Field(default_factory=list)
     modelProbability: float = Field(ge=0, le=1)
     impliedProbability: float = Field(ge=0, le=1)
     estimatedEdge: float
+    fairProbability: float | None = None
+    fairOdds: float | None = None
     uncertainty: float = Field(ge=0, le=1)
     dataCompleteness: float = Field(ge=0, le=1)
+    calibrationError: float | None = Field(default=None, ge=0, le=1)
+    distributionShift: float | None = Field(default=None, ge=0, le=1)
+    correlationGroup: str | None = None
     modelVersion: str
     oddsObservedAt: str
     status: Literal["eligible", "rejected", "abstain"]
@@ -59,6 +65,13 @@ def mock_candidates() -> list[MarketCandidate]:
             estimatedEdge=0.022,
             uncertainty=0.12,
             dataCompleteness=0.92,
+            calibrationError=0.04,
+            distributionShift=0.02,
+            correlationGroup="fixture-dev-001-goals",
+            marketQuotes=[
+                {"selection": "Over 1.5 goals", "odds": 1.32},
+                {"selection": "Under 1.5 goals", "odds": 3.80},
+            ],
             modelVersion="mock-v0",
             oddsObservedAt=observed,
             status="eligible",
@@ -79,6 +92,13 @@ def mock_candidates() -> list[MarketCandidate]:
             estimatedEdge=0.012,
             uncertainty=0.19,
             dataCompleteness=0.84,
+            calibrationError=0.05,
+            distributionShift=0.03,
+            correlationGroup="fixture-dev-002-corners",
+            marketQuotes=[
+                {"selection": "Over 8.5 corners", "odds": 1.72},
+                {"selection": "Under 8.5 corners", "odds": 1.95},
+            ],
             modelVersion="mock-v0",
             oddsObservedAt=observed,
             status="eligible",

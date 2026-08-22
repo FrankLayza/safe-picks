@@ -7,6 +7,29 @@ export type MarketType =
 
 export type CandidateStatus = "eligible" | "rejected" | "abstain";
 
+export type CandidateRejectionCode =
+  | "INVALID_ODDS"
+  | "STALE_ODDS"
+  | "MISSING_MARKET_PEERS"
+  | "LOW_DATA_COMPLETENESS"
+  | "HIGH_UNCERTAINTY"
+  | "UNCALIBRATED_MODEL"
+  | "DISTRIBUTION_SHIFT"
+  | "LOW_EDGE"
+  | "CORRELATED_SELECTION"
+  | "UNSUPPORTED_MARKET";
+
+export interface CandidateDecision {
+  status: CandidateStatus;
+  rejectionCode?: CandidateRejectionCode;
+  reason: string;
+}
+
+export interface MarketQuote {
+  selection: string;
+  odds: number;
+}
+
 export interface MarketCandidate {
   id: string;
   fixtureId: string;
@@ -17,15 +40,22 @@ export interface MarketCandidate {
   selection: string;
   line?: number;
   odds: number;
+  marketQuotes?: MarketQuote[];
   modelProbability: number;
   impliedProbability: number;
   estimatedEdge: number;
+  fairProbability?: number;
+  fairOdds?: number;
   uncertainty: number;
   dataCompleteness: number;
+  calibrationError?: number;
+  distributionShift?: number;
+  correlationGroup?: string;
   modelVersion: string;
   oddsObservedAt: string;
   status: CandidateStatus;
   reason: string;
+  rejectionCode?: CandidateRejectionCode;
 }
 
 export interface TodayCandidatesResponse {

@@ -1,9 +1,10 @@
 import type { DraftSlip, MarketCandidate } from "@safe-picks/contracts";
+import { applyCorrelationFilter } from "./decision.js";
 
 export function buildDraft(candidates: MarketCandidate[], targetOdds: number, maxLegs: number): DraftSlip {
   const selected: MarketCandidate[] = [];
   const usedFixtures = new Set<string>();
-  const ranked = [...candidates]
+  const ranked = applyCorrelationFilter(candidates)
     .filter((candidate) => candidate.status === "eligible")
     .sort((a, b) => b.estimatedEdge - a.estimatedEdge);
 
