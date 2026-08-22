@@ -71,8 +71,9 @@ PRD coverage: FR-09, FR-10
 - [x] Normalize Football-Data CSV fixtures/results/stats in the first scheduled ingestion job.
 - [~] Normalize The Odds API bookmaker quotes with event and bookmaker timestamps; scheduled ingestion is not implemented.
 - [x] Save immutable Football-Data raw payloads to the local file snapshot store and write normalized manifests; PostgreSQL/object storage is not implemented.
-- [ ] Add identity resolution for teams, competitions, fixtures, and markets.
-- [ ] Add freshness, missingness, duplicate, and correction checks.
+- [x] Add canonical identity resolution for teams, competitions, fixtures, and markets.
+- [x] Add exact duplicate detection and conflicting correction checks for normalized manifests.
+- [~] Add freshness and broader missingness checks; identity-required fields fail closed.
 - [ ] Add historical replay so features can be reconstructed as-of any forecast time.
 
 Exit criteria: A historical fixture and odds record can be reproduced exactly from saved source snapshots and normalized into the canonical schema. Current adapter tests cover parsing and snapshots; provider licence/account verification and durable ingestion remain.
@@ -179,7 +180,7 @@ Exit criteria: Release approval is evidence-based and does not depend on a headl
 | FR-06 Help and wording | Phase 1 | `[x]` command and warnings exist |
 | FR-07 Abstention | Phase 1, Phase 2, Phase 6 | `[~]` empty-set and gate rejection exist; production calibration gates remain unvalidated |
 | FR-08 Paper ledger | Phase 7 | `[ ]` |
-| FR-09 Permitted ingestion | Phase 3 | `[~]` provider boundary and parsing exist; licence and durable ingestion remain |
+| FR-09 Permitted ingestion | Phase 3 | `[~]` provider boundary, identity checks, and local manifests exist; licence and durable ingestion remain |
 | FR-10 Leakage prevention | Phase 4, Phase 5 | `[ ]` |
 | FR-11 Model evaluation | Phase 5, Phase 7 | `[ ]` |
 | FR-12 SportyBet boundary | Phase 8 | `[ ]` |

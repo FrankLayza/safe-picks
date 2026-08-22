@@ -10,6 +10,7 @@ from urllib.request import Request, urlopen
 from dotenv import load_dotenv
 
 from .providers.football_data import FootballDataCsvAdapter
+from .providers.identity import FixtureIdentity, identity_to_dict, resolve_fixture_identity, resolve_fixture_records
 from .providers.models import FixtureRecord, RawSnapshot
 from .providers.raw_store import FileRawSnapshotStore
 
@@ -46,10 +47,24 @@ def write_normalized_manifest(
     snapshot: RawSnapshot,
     records: list[FixtureRecord],
     written_at: datetime,
+    audit: dict[str, object] | None = None,
+    identities: dict[str, FixtureIdentity] | None = None,
 ) -> Path:
     directory = Path(root) / "normalized" / "football-data.co.uk" / written_at.strftime("%Y-%m-%d")
     directory.mkdir(parents=True, exist_ok=True)
     manifest_path = directory / f"{written_at.strftime('%H%M%S')}-{snapshot.sha256[:16]}.json"
+    fixture_payloads = []
+    for record in records:
+        serialized = asdict(record)
+        serialized["match_start_at"] = record.match_start_at.isoformat()
+        serialized["retrieved_at"] = record.retrieved_at.isoformat()
+        serialized["observed_at"] = record.observed_at.isoformat() if record.observed_at else None
+        fixture_id = resolve_fixture_identity(record, season).canonical_fixture_id
+        identity = identities.get(fixture_id) if identities else None
+        if identity is None:
+            raise ValueError("Fixture identity is required before writing a normalized manifest")
+        serialized.update(identity_to_dict(identity))
+        fixture_payloads.append(serialized)
     payload = {
         "provider": "football-data.co.uk",
         "league": league,
@@ -58,16 +73,9 @@ def write_normalized_manifest(
         "retrieved_at": snapshot.retrieved_at.isoformat(),
         "raw_snapshot_sha256": snapshot.sha256,
         "raw_snapshot_path": snapshot.payload_path,
-        "record_count": len(records),
-        "fixtures": [
-            {
-                **asdict(record),
-                "match_start_at": record.match_start_at.isoformat(),
-                "retrieved_at": record.retrieved_at.isoformat(),
-                "observed_at": record.observed_at.isoformat() if record.observed_at else None,
-            }
-            for record in records
-        ],
+        "record_count": len(fixture_payloads),
+        "fixtures": fixture_payloads,
+        "identity_validation": audit or {},
     }
     manifest_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return manifest_path
@@ -103,10 +111,40 @@ class FootballDataIngestionJob:
             content_type,
             retrieved_at,
         )
-        records = FootballDataCsvAdapter().parse(payload, retrieved_at, self.league)
+        records = FootballDataCsvAdapter().parse(payload, retrieved_at, self.league, self.season)
         if not records:
             raise ValueError("Football-Data payload contained no dated fixtures")
-        return write_normalized_manifest(self.raw_root, self.league, self.season, source_url, snapshot, records, retrieved_at)
+        normalized_records, audit, identities = resolve_fixture_records(
+            records,
+            self.season,
+            previous_manifests=self._existing_manifests(),
+        )
+        return write_normalized_manifest(
+            self.raw_root,
+            self.league,
+            self.season,
+            source_url,
+            snapshot,
+            normalized_records,
+            retrieved_at,
+            audit,
+            identities,
+        )
+
+    def _existing_manifests(self) -> list[dict[str, object]]:
+        directory = self.raw_root / "normalized" / "football-data.co.uk"
+        if not directory.exists():
+            return []
+        manifests: list[dict[str, object]] = []
+        for path in sorted(directory.rglob("*.json")):
+            try:
+                value = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeDecodeError, ValueError) as exc:
+                raise ValueError(f"Unable to read existing normalized manifest: {path}") from exc
+            if not isinstance(value, dict) or not isinstance(value.get("fixtures", []), list):
+                raise ValueError(f"Invalid normalized manifest shape: {path}")
+            manifests.append(value)
+        return manifests
 
 
 def run_scheduler(job: FootballDataIngestionJob, interval_seconds: int = DEFAULT_INTERVAL_SECONDS) -> None:

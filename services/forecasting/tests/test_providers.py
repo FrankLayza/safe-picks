@@ -47,6 +47,10 @@ class ProviderTests(unittest.TestCase):
         self.assertEqual(quotes[0].source_event_id, "event-1")
         self.assertEqual(quotes[0].observed_at, parse_datetime("2026-08-23T12:05:00Z"))
         self.assertEqual(quotes[0].odds, 1.9)
+        self.assertTrue(quotes[0].canonical_market_id.startswith("market:"))
+        self.assertEqual(quotes[0].canonical_market, "match result")
+        self.assertEqual(quotes[0].canonical_selection, "home fc")
+        self.assertEqual(quotes[0].canonical_line, "none")
 
     def test_raw_store_writes_payload_and_metadata_with_checksum(self):
         with tempfile.TemporaryDirectory() as directory:

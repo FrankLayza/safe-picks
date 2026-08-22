@@ -87,8 +87,10 @@ Current provider boundary:
 - `OddsApiAdapter` for authenticated current bookmaker snapshots.
 - `FileRawSnapshotStore` for immutable local payload/checksum storage during development.
 - `ProviderRegistry` for coverage, licensing, rate-limit, and retention metadata.
+- `identity.py` for deterministic canonical team, competition, fixture, and market IDs.
+- Manifest validation for exact duplicate collapse, completion audit, and fail-closed correction detection.
 
-These adapters do not grant redistribution rights. Production ingestion still requires account verification, licensing review, identity resolution, and durable storage.
+These adapters do not grant redistribution rights. Production ingestion still requires account verification, licensing review, freshness/missingness policy, and durable storage.
 
 ### Feature Pipeline
 

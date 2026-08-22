@@ -9,7 +9,13 @@ from .models import FixtureRecord, to_int
 class FootballDataCsvAdapter:
     provider = "football-data.co.uk"
 
-    def parse(self, payload: bytes, retrieved_at: datetime, competition: str | None = None) -> list[FixtureRecord]:
+    def parse(
+        self,
+        payload: bytes,
+        retrieved_at: datetime,
+        competition: str | None = None,
+        season: str | None = None,
+    ) -> list[FixtureRecord]:
         text = payload.decode("utf-8-sig")
         rows: Iterable[dict[str, str]] = csv.DictReader(io.StringIO(text))
         records: list[FixtureRecord] = []
@@ -30,6 +36,7 @@ class FootballDataCsvAdapter:
                     match_start_at=match_date,
                     retrieved_at=retrieved_at,
                     competition=competition,
+                    season=season,
                     home_goals=to_int(row.get("FTHG")),
                     away_goals=to_int(row.get("FTAG")),
                     half_time_home_goals=to_int(row.get("HTHG")),
@@ -43,4 +50,3 @@ class FootballDataCsvAdapter:
                 )
             )
         return records
-

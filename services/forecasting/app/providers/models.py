@@ -36,6 +36,7 @@ class FixtureRecord:
     retrieved_at: datetime
     observed_at: datetime | None = None
     competition: str | None = None
+    season: str | None = None
     home_goals: int | None = None
     away_goals: int | None = None
     half_time_home_goals: int | None = None
@@ -60,6 +61,10 @@ class OddsQuote:
     retrieved_at: datetime
     observed_at: datetime | None = None
     line: float | None = None
+    canonical_market_id: str | None = None
+    canonical_market: str | None = None
+    canonical_selection: str | None = None
+    canonical_line: str | None = None
 
 
 def parse_datetime(value: str) -> datetime:

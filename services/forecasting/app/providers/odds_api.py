@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from .identity import resolve_market_quotes
 from .models import OddsQuote, parse_datetime
 
 
@@ -34,21 +35,21 @@ class OddsApiAdapter:
                 observed = parse_datetime(bookmaker["last_update"]) if bookmaker.get("last_update") else None
                 for market in bookmaker.get("markets", []):
                     for outcome in market.get("outcomes", []):
-                        quotes.append(
-                            OddsQuote(
-                                provider=self.provider,
-                                source_event_id=str(event["id"]),
-                                bookmaker=bookmaker["key"],
-                                market=market["key"],
-                                selection=outcome["name"],
-                                odds=float(outcome["price"]),
-                                match_start_at=match_start,
-                                retrieved_at=retrieved,
-                                observed_at=observed,
-                                line=float(outcome["point"]) if outcome.get("point") is not None else None,
-                            )
+                        quote = OddsQuote(
+                            provider=self.provider,
+                            source_event_id=str(event["id"]),
+                            bookmaker=bookmaker["key"],
+                            market=market["key"],
+                            selection=outcome["name"],
+                            odds=float(outcome["price"]),
+                            match_start_at=match_start,
+                            retrieved_at=retrieved,
+                            observed_at=observed,
+                            line=float(outcome["point"]) if outcome.get("point") is not None else None,
                         )
-        return quotes
+                        quotes.append(quote)
+        normalized_quotes, _ = resolve_market_quotes(quotes)
+        return normalized_quotes
 
     def _get(self, path: str, params: dict[str, str]) -> tuple[bytes, dict[str, str]]:
         query = urlencode({**params, "apiKey": self.api_key})
@@ -56,4 +57,3 @@ class OddsApiAdapter:
         with urlopen(request, timeout=30) as response:
             headers = {key.lower(): value for key, value in response.headers.items()}
             return response.read(), headers
-

@@ -25,6 +25,7 @@ Endpoints:
 - `FileRawSnapshotStore` saves immutable payload bytes and checksum metadata.
 - `ProviderRegistry` records coverage, licensing status, rate-limit policy, and retention policy.
 - `FootballDataIngestionJob` downloads one configured league/season, stores the raw CSV, and writes a normalized JSON manifest.
+- `identity.py` resolves canonical entity IDs and validates duplicate, completion, and correction behavior before a manifest is written.
 
 Run provider tests from this directory:
 
