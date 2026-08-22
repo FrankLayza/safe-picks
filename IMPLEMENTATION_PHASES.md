@@ -37,14 +37,14 @@ PRD coverage: FR-03, FR-04, FR-05, FR-06, partial FR-07
 - [x] Add `/help` command.
 - [x] Validate target odds and maximum-leg input.
 - [x] Display odds, model probability, edge, and warnings for mock candidates.
-- [~] Implement one-selection-per-fixture behavior.
-- [~] Implement basic edge-ranked draft construction.
-- [~] Implement basic trimming behavior.
+- [x] Implement one-selection-per-fixture behavior.
+- [x] Implement basic edge-ranked draft construction.
+- [x] Implement basic trimming behavior.
 - [ ] Add persistent user drafts instead of in-memory drafts.
 - [ ] Return structured rejection reasons from the forecasting service.
-- [ ] Add focused tests for command parsing and slip behavior.
+- [x] Add focused tests for command parsing and slip behavior.
 
-Exit criteria: Commands work against a stable service contract and all command behavior has automated tests.
+Exit criteria: Core commands work against the development service contract and parsing/selection/trimming/abstention behavior has automated tests. Core slice complete; persistence and service-level rejection contracts remain.
 
 ## Phase 2: Candidate and Decision Contracts
 
@@ -172,14 +172,13 @@ Exit criteria: Release approval is evidence-based and does not depend on a headl
 |---|---|---|
 | FR-01 Multi-market candidates | Phase 2, Phase 6 | `[~]` development mock only |
 | FR-02 Forecast metadata | Phase 2, Phase 5 | `[~]` contract fields exist; no real model |
-| FR-03 Safe-bets draft | Phase 1 | `[~]` works with mock candidates |
+| FR-03 Safe-bets draft | Phase 1 | `[x]` works with mock candidates and tested selection behavior |
 | FR-04 Risk trimming | Phase 1, Phase 6 | `[~]` basic scaffold only |
-| FR-05 Slip inspection | Phase 1 | `[~]` works with in-memory draft |
+| FR-05 Slip inspection | Phase 1 | `[x]` works with in-memory draft and tested calculations |
 | FR-06 Help and wording | Phase 1 | `[x]` command and warnings exist |
-| FR-07 Abstention | Phase 2, Phase 6 | `[~]` no real eligibility gates yet |
+| FR-07 Abstention | Phase 1, Phase 2, Phase 6 | `[~]` empty-set abstention is tested; eligibility gates are not implemented |
 | FR-08 Paper ledger | Phase 7 | `[ ]` |
 | FR-09 Permitted ingestion | Phase 3 | `[ ]` |
 | FR-10 Leakage prevention | Phase 4, Phase 5 | `[ ]` |
 | FR-11 Model evaluation | Phase 5, Phase 7 | `[ ]` |
 | FR-12 SportyBet boundary | Phase 8 | `[ ]` |
-

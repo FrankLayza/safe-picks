@@ -41,5 +41,6 @@ export interface DraftSlip {
   candidates: MarketCandidate[];
   combinedOdds: number;
   estimatedJointProbability: number;
+  status: "draft" | "abstain";
   warnings: string[];
 }

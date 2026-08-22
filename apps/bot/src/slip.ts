@@ -19,9 +19,20 @@ export function buildDraft(candidates: MarketCandidate[], targetOdds: number, ma
     "Development mock candidates are not betting advice.",
     "Joint probability is a conservative independence estimate; real legs may be correlated.",
   ];
+  if (selected.length === 0) {
+    return {
+      targetOdds,
+      maxLegs,
+      candidates: [],
+      combinedOdds: 0,
+      estimatedJointProbability: 0,
+      status: "abstain",
+      warnings: ["No qualifying bet.", "No eligible candidates passed the current selection rules."],
+    };
+  }
   if (combinedOdds < targetOdds) warnings.push("Target odds were not reached without adding lower-quality legs.");
 
-  return { targetOdds, maxLegs, candidates: selected, combinedOdds, estimatedJointProbability, warnings };
+  return { targetOdds, maxLegs, candidates: selected, combinedOdds, estimatedJointProbability, status: "draft", warnings };
 }
 
 export function trimDraft(draft: DraftSlip): DraftSlip {
