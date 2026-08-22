@@ -15,7 +15,11 @@ AGENTS.md                 Durable instructions for coding agents
 
 ## Setup
 
-Copy `.env.example` to `.env` and set `TELEGRAM_BOT_TOKEN` only when running the Telegram process. Start the forecasting service first, then run the bot:
+Copy `.env.example` to `.env`. For the current Telegram bot, `TELEGRAM_BOT_TOKEN` is required and `FORECASTING_SERVICE_URL` should point to the running forecasting service. `ALLOWED_TELEGRAM_USER_IDS` is optional for a local allowlist. The bot loads `.env` automatically; never commit the populated file.
+
+The remaining provider, database, storage, model-registry, and paper-trading variables are placeholders for later implementation phases and should remain empty until those integrations are approved.
+
+Start the forecasting service first, then run the bot:
 
 ```text
 cd services/forecasting

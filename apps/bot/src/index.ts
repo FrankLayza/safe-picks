@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { Bot } from "grammy";
 import type { DraftSlip } from "@safe-picks/contracts";
 import { config, telegramToken } from "./config.js";
