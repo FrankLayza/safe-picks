@@ -68,9 +68,9 @@ PRD coverage: FR-09, FR-10
 - [x] Select one permitted football results/fixtures source for research backfill: Football-Data.co.uk, subject to licence review.
 - [x] Select one permitted odds source for current snapshots: The Odds API, subject to account and plan verification.
 - [x] Define provider registry, license status, rate limits, and retention rules.
-- [~] Normalize Football-Data CSV fixtures/results/stats in memory; persistent ingestion is not implemented.
+- [x] Normalize Football-Data CSV fixtures/results/stats in the first scheduled ingestion job.
 - [~] Normalize The Odds API bookmaker quotes with event and bookmaker timestamps; scheduled ingestion is not implemented.
-- [~] Save immutable raw payloads to the local file snapshot store; PostgreSQL/object storage is not implemented.
+- [x] Save immutable Football-Data raw payloads to the local file snapshot store and write normalized manifests; PostgreSQL/object storage is not implemented.
 - [ ] Add identity resolution for teams, competitions, fixtures, and markets.
 - [ ] Add freshness, missingness, duplicate, and correction checks.
 - [ ] Add historical replay so features can be reconstructed as-of any forecast time.

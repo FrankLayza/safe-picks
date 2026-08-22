@@ -32,5 +32,4 @@ class FileRawSnapshotStore:
             ),
             encoding="utf-8",
         )
-        return RawSnapshot(provider, source_uri, timestamp, payload, content_type, digest)
-
+        return RawSnapshot(provider, source_uri, timestamp, payload, content_type, digest, str(data_path), str(metadata_path))

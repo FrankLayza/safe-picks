@@ -22,6 +22,8 @@ class RawSnapshot:
     payload: bytes
     content_type: str
     sha256: str
+    payload_path: str | None = None
+    metadata_path: str | None = None
 
 
 @dataclass(frozen=True)
@@ -72,4 +74,3 @@ def to_int(value: Any) -> int | None:
     if value is None or str(value).strip() == "":
         return None
     return int(float(str(value).strip()))
-
