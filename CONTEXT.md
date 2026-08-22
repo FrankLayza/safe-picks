@@ -1,6 +1,6 @@
 # Safe Picks Project Context
 
-Status: Planning / research validation
+Status: Scaffold implemented / paper-trading validation pending
 Last updated: 2026-08-23
 
 ## Product
@@ -60,8 +60,10 @@ The project is not ready for real-money use until it demonstrates, on untouched 
 ## Current State
 
 - Research blueprint exists in the HIOS ideas folder.
-- This repository contains planning documents only.
-- No bot, API, model, data pipeline, or bookmaker integration has been implemented.
+- TypeScript Telegram bot scaffold exists with `/safe_bets`, `/trim`, `/slip`, and `/help`.
+- Python FastAPI forecasting boundary exists with deterministic development candidates.
+- Shared contracts, environment template, and workspace tooling exist.
+- No live provider, trained model, database, paper-trading ledger, or bookmaker integration has been implemented.
 
 ## Key Risks
 
