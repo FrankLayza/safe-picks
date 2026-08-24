@@ -27,6 +27,7 @@ Endpoints:
 - `FootballDataIngestionJob` downloads one configured league/season, stores the raw CSV, and writes a normalized JSON manifest.
 - `identity.py` resolves canonical entity IDs and validates duplicate, completion, and correction behavior before a manifest is written.
 - `HistoricalManifestReplay` reconstructs fixture records as of a forecast timestamp using only manifests already retrieved by that time.
+- Ingestion quality validation rejects future or stale snapshots and missing required identity/timestamp fields, while auditing optional-statistic missingness. Configure `INGESTION_MAX_SNAPSHOT_AGE_DAYS` and optionally `INGESTION_MAX_OPTIONAL_MISSING_FRACTION`.
 
 Run provider tests from this directory:
 

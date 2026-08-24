@@ -66,6 +66,7 @@ The project is not ready for real-money use until it demonstrates, on untouched 
 - Phase 3 provider boundary exists for Football-Data.co.uk historical CSVs, The Odds API snapshots, raw file snapshots, and provider metadata.
 - Development ingestion resolves canonical team, competition, fixture, and market identities and audits duplicate/completion rows while rejecting conflicting corrections.
 - Historical manifest replay can reconstruct the latest fixture observation available at a timezone-aware as-of timestamp and preserves source provenance.
+- Ingestion quality validation rejects future/stale snapshots and missing required fields, while optional statistics produce field-level missingness audits and can be threshold-gated.
 - No live provider, trained model, database, paper-trading ledger, or bookmaker integration has been implemented.
 
 ## Key Risks

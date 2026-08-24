@@ -1,10 +1,11 @@
 import json
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from app.ingestion import FootballDataIngestionJob, football_data_url
+from app.providers.quality import IngestionQualityPolicy, IngestionValidationError
 
 
 CSV_PAYLOAD = b"Date,HomeTeam,AwayTeam,FTHG,FTAG,FTR,HTHG,HTAG,HTR,HS,AS,HST,AST,HC,AC\n23/08/2025,Home FC,Away FC,2,1,H,1,0,H,14,8,6,3,7,4\n"
@@ -47,6 +48,7 @@ class IngestionTests(unittest.TestCase):
             self.assertEqual(manifest["fixtures"][0]["canonical_home_team"], "home fc")
             self.assertEqual(manifest["fixtures"][0]["canonical_competition"], "england premier league")
             self.assertEqual(manifest["identity_validation"]["duplicate_count"], 0)
+            self.assertEqual(manifest["quality_validation"]["status"], "pass")
             self.assertTrue(Path(manifest["raw_snapshot_path"]).exists())
             self.assertEqual(len(list(Path(directory).rglob("*.bin"))), 1)
             self.assertEqual(len(list(Path(directory).rglob("*.json"))), 2)
@@ -100,6 +102,22 @@ class IngestionTests(unittest.TestCase):
             second_manifest_path = job.run_once()
             manifest = json.loads(Path(second_manifest_path).read_text(encoding="utf-8"))
             self.assertEqual(manifest["identity_validation"]["previous_snapshot_duplicate_count"], 1)
+
+    def test_run_once_rejects_stale_snapshot_with_machine_readable_reason(self):
+        with tempfile.TemporaryDirectory() as directory:
+            retrieved = self.retrieved
+            job = FootballDataIngestionJob(
+                directory,
+                downloader=lambda _: (CSV_PAYLOAD, "text/csv"),
+                clock=lambda: retrieved,
+                quality_reference_clock=lambda: retrieved.replace(day=30),
+                quality_policy=IngestionQualityPolicy(max_snapshot_age=timedelta(days=1)),
+            )
+            with self.assertRaises(IngestionValidationError) as context:
+                job.run_once()
+            self.assertEqual(context.exception.code, "ingestion_quality_rejected")
+            self.assertEqual(context.exception.reasons[0]["code"], "stale_snapshot")
+            self.assertEqual(len(list(Path(directory).rglob("*.bin"))), 1)
 
 
 if __name__ == "__main__":

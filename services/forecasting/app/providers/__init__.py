@@ -1,4 +1,5 @@
 from .models import FixtureRecord, OddsQuote, ProviderMetadata, RawSnapshot
+from .quality import IngestionQualityPolicy, IngestionValidationError, validate_ingestion_quality
 from .identity import (
     FixtureIdentity,
     IdentityResolutionError,
@@ -30,4 +31,7 @@ __all__ = [
     "resolve_market_identity",
     "resolve_market_quotes",
     "resolve_team_id",
+    "IngestionQualityPolicy",
+    "IngestionValidationError",
+    "validate_ingestion_quality",
 ]

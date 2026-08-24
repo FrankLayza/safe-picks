@@ -2,7 +2,7 @@ import json
 import os
 import time
 from dataclasses import asdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Callable
 from urllib.request import Request, urlopen
@@ -12,12 +12,14 @@ from dotenv import load_dotenv
 from .providers.football_data import FootballDataCsvAdapter
 from .providers.identity import FixtureIdentity, identity_to_dict, resolve_fixture_identity, resolve_fixture_records
 from .providers.models import FixtureRecord, RawSnapshot
+from .providers.quality import IngestionQualityPolicy, validate_ingestion_quality
 from .providers.raw_store import FileRawSnapshotStore
 
 DEFAULT_BASE_URL = "https://www.football-data.co.uk"
 DEFAULT_LEAGUE = "E0"
 DEFAULT_SEASON = "2526"
 DEFAULT_INTERVAL_SECONDS = 86_400
+DEFAULT_MAX_SNAPSHOT_AGE_DAYS = 7
 
 
 def football_data_url(base_url: str, league: str, season: str) -> str:
@@ -49,6 +51,7 @@ def write_normalized_manifest(
     written_at: datetime,
     audit: dict[str, object] | None = None,
     identities: dict[str, FixtureIdentity] | None = None,
+    quality_audit: dict[str, object] | None = None,
 ) -> Path:
     directory = Path(root) / "normalized" / "football-data.co.uk" / written_at.strftime("%Y-%m-%d")
     directory.mkdir(parents=True, exist_ok=True)
@@ -76,6 +79,7 @@ def write_normalized_manifest(
         "record_count": len(fixture_payloads),
         "fixtures": fixture_payloads,
         "identity_validation": audit or {},
+        "quality_validation": quality_audit or {},
     }
     manifest_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return manifest_path
@@ -90,6 +94,8 @@ class FootballDataIngestionJob:
         season: str = DEFAULT_SEASON,
         downloader: Callable[[str], tuple[bytes, str]] = download_csv,
         clock: Callable[[], datetime] | None = None,
+        quality_policy: IngestionQualityPolicy | None = None,
+        quality_reference_clock: Callable[[], datetime] | None = None,
     ):
         self.raw_root = Path(raw_root)
         self.base_url = base_url
@@ -97,6 +103,8 @@ class FootballDataIngestionJob:
         self.season = season.strip()
         self.downloader = downloader
         self.clock = clock or (lambda: datetime.now(timezone.utc))
+        self.quality_policy = quality_policy or IngestionQualityPolicy()
+        self.quality_reference_clock = quality_reference_clock
 
     def run_once(self) -> Path:
         retrieved_at = self.clock()
@@ -114,6 +122,12 @@ class FootballDataIngestionJob:
         records = FootballDataCsvAdapter().parse(payload, retrieved_at, self.league, self.season)
         if not records:
             raise ValueError("Football-Data payload contained no dated fixtures")
+        quality_audit = validate_ingestion_quality(
+            records,
+            snapshot_retrieved_at=retrieved_at,
+            reference_at=self.quality_reference_clock() if self.quality_reference_clock else retrieved_at,
+            policy=self.quality_policy,
+        )
         normalized_records, audit, identities = resolve_fixture_records(
             records,
             self.season,
@@ -129,6 +143,7 @@ class FootballDataIngestionJob:
             retrieved_at,
             audit,
             identities,
+            quality_audit,
         )
 
     def _existing_manifests(self) -> list[dict[str, object]]:
@@ -157,9 +172,16 @@ def run_scheduler(job: FootballDataIngestionJob, interval_seconds: int = DEFAULT
 
 def job_from_environment() -> FootballDataIngestionJob:
     load_dotenv()
+    max_age_days = float(os.getenv("INGESTION_MAX_SNAPSHOT_AGE_DAYS", str(DEFAULT_MAX_SNAPSHOT_AGE_DAYS)))
+    missing_fraction_value = os.getenv("INGESTION_MAX_OPTIONAL_MISSING_FRACTION", "").strip()
+    missing_fraction = float(missing_fraction_value) if missing_fraction_value else None
     return FootballDataIngestionJob(
         raw_root=os.getenv("RAW_DATA_ROOT", "data/raw"),
         base_url=os.getenv("FOOTBALL_DATA_BASE_URL", DEFAULT_BASE_URL),
         league=os.getenv("FOOTBALL_DATA_LEAGUE", DEFAULT_LEAGUE),
         season=os.getenv("FOOTBALL_DATA_SEASON", DEFAULT_SEASON),
+        quality_policy=IngestionQualityPolicy(
+            max_snapshot_age=timedelta(days=max_age_days),
+            max_optional_missing_fraction=missing_fraction,
+        ),
     )
