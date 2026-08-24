@@ -89,8 +89,11 @@ Current provider boundary:
 - `ProviderRegistry` for coverage, licensing, rate-limit, and retention metadata.
 - `identity.py` for deterministic canonical team, competition, fixture, and market IDs.
 - Manifest validation for exact duplicate collapse, completion audit, and fail-closed correction detection.
+- `HistoricalManifestReplay` for timestamp-bounded fixture reconstruction with source manifest and raw snapshot provenance.
 
 These adapters do not grant redistribution rights. Production ingestion still requires account verification, licensing review, freshness/missingness policy, and durable storage.
+
+Historical replay only considers manifests whose provider retrieval timestamp is at or before the requested forecast timestamp. For each canonical fixture it selects the latest eligible observation and retains its manifest path and raw snapshot checksum so feature generation can be audited without using future data.
 
 ### Feature Pipeline
 
