@@ -74,6 +74,7 @@ PRD coverage: FR-09, FR-10
 - [x] Add canonical identity resolution for teams, competitions, fixtures, and markets.
 - [x] Add exact duplicate detection and conflicting correction checks for normalized manifests.
 - [x] Add freshness and broader missingness checks with machine-readable rejection reasons; identity and timestamp fields fail closed.
+- [x] Expose ingestion quality rejection codes through the forecasting service API for downstream diagnostics.
 - [x] Add historical replay so fixtures can be reconstructed as-of any forecast time from eligible normalized manifests.
 
 Exit criteria: A historical fixture and odds record can be reproduced exactly from saved source snapshots and normalized into the canonical schema. Current adapter tests cover parsing and snapshots; provider licence/account verification and durable ingestion remain.

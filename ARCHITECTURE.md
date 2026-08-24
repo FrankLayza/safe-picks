@@ -169,6 +169,7 @@ Responsibilities:
 
 ```text
 GET  /v1/matches/today
+POST /v1/ingestion/quality
 POST /v1/slips
 POST /v1/slips/{slipId}/trim
 GET  /v1/slips/{slipId}
@@ -176,6 +177,8 @@ GET  /v1/performance
 ```
 
 The API must return timestamps, odds source, model version, calibration status, warnings, and abstention reasons with every candidate.
+
+Ingestion quality failures use a stable error envelope: HTTP 422 with `error.code`, `error.message`, `error.reasons`, and `error.audit`. The TypeScript client preserves this envelope in `ForecastingServiceError` for downstream diagnostics.
 
 ## Security and Reliability
 

@@ -1,10 +1,29 @@
-from datetime import datetime, timezone
-from typing import Literal
+from datetime import datetime, timedelta, timezone
+from typing import Any, Literal
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from .providers.models import FixtureRecord
+from .providers.quality import IngestionQualityPolicy, IngestionValidationError, validate_ingestion_quality
+
 app = FastAPI(title="Safe Picks Forecasting Service", version="0.1.0")
+
+
+@app.exception_handler(IngestionValidationError)
+async def ingestion_validation_error_handler(_: Request, error: IngestionValidationError) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": {
+                "code": error.code,
+                "message": str(error),
+                "reasons": error.reasons,
+                "audit": error.audit,
+            }
+        },
+    )
 
 
 class MarketCandidate(BaseModel):
@@ -45,6 +64,44 @@ class CandidatesResponse(BaseModel):
     source: Literal["development-mock", "forecasting-service"]
     candidates: list[MarketCandidate]
     warnings: list[str]
+
+
+class IngestionFixturePayload(BaseModel):
+    provider: str | None = None
+    source_event_id: str | None = None
+    home_team: str | None = None
+    away_team: str | None = None
+    match_start_at: Any = None
+    retrieved_at: Any = None
+    observed_at: Any = None
+    competition: str | None = None
+    season: str | None = None
+    home_goals: int | None = None
+    away_goals: int | None = None
+    half_time_home_goals: int | None = None
+    half_time_away_goals: int | None = None
+    home_corners: int | None = None
+    away_corners: int | None = None
+    home_shots: int | None = None
+    away_shots: int | None = None
+    home_shots_on_target: int | None = None
+    away_shots_on_target: int | None = None
+
+
+class IngestionQualityRequest(BaseModel):
+    snapshot_retrieved_at: Any = None
+    reference_at: Any = None
+    max_snapshot_age_seconds: float | None = Field(default=604800, ge=0)
+    max_optional_missing_fraction: float | None = Field(default=None, ge=0, le=1)
+    records: list[IngestionFixturePayload] = Field(default_factory=list)
+
+
+class IngestionQualityResponse(BaseModel):
+    status: Literal["pass", "rejected"]
+    code: str | None = None
+    message: str | None = None
+    reasons: list[dict[str, object]]
+    audit: dict[str, object]
 
 
 def mock_candidates() -> list[MarketCandidate]:
@@ -107,6 +164,39 @@ def mock_candidates() -> list[MarketCandidate]:
     ]
 
 
+def parse_api_timestamp(value: Any) -> Any:
+    if not isinstance(value, str):
+        return value
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return value
+
+
+def fixture_from_api(payload: IngestionFixturePayload) -> FixtureRecord:
+    return FixtureRecord(
+        provider=payload.provider,  # type: ignore[arg-type]
+        source_event_id=payload.source_event_id,  # type: ignore[arg-type]
+        home_team=payload.home_team,  # type: ignore[arg-type]
+        away_team=payload.away_team,  # type: ignore[arg-type]
+        match_start_at=parse_api_timestamp(payload.match_start_at),  # type: ignore[arg-type]
+        retrieved_at=parse_api_timestamp(payload.retrieved_at),  # type: ignore[arg-type]
+        observed_at=parse_api_timestamp(payload.observed_at),
+        competition=payload.competition,
+        season=payload.season,
+        home_goals=payload.home_goals,
+        away_goals=payload.away_goals,
+        half_time_home_goals=payload.half_time_home_goals,
+        half_time_away_goals=payload.half_time_away_goals,
+        home_corners=payload.home_corners,
+        away_corners=payload.away_corners,
+        home_shots=payload.home_shots,
+        away_shots=payload.away_shots,
+        home_shots_on_target=payload.home_shots_on_target,
+        away_shots_on_target=payload.away_shots_on_target,
+    )
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "forecasting", "mode": "development-mock"}
@@ -119,4 +209,23 @@ def today_candidates() -> CandidatesResponse:
         source="development-mock",
         candidates=mock_candidates(),
         warnings=["This response uses deterministic mock data; it is not a forecast or betting advice."],
+    )
+
+
+@app.post("/v1/ingestion/quality", response_model=IngestionQualityResponse)
+def ingestion_quality(payload: IngestionQualityRequest) -> IngestionQualityResponse:
+    max_age = timedelta(seconds=payload.max_snapshot_age_seconds) if payload.max_snapshot_age_seconds is not None else None
+    audit = validate_ingestion_quality(
+        [fixture_from_api(record) for record in payload.records],
+        snapshot_retrieved_at=parse_api_timestamp(payload.snapshot_retrieved_at),
+        reference_at=parse_api_timestamp(payload.reference_at) if payload.reference_at is not None else None,
+        policy=IngestionQualityPolicy(
+            max_snapshot_age=max_age,
+            max_optional_missing_fraction=payload.max_optional_missing_fraction,
+        ),
+    )
+    return IngestionQualityResponse(
+        status="pass",
+        reasons=[],
+        audit=audit,
     )

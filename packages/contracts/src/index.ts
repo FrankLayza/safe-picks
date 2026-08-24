@@ -65,6 +65,34 @@ export interface TodayCandidatesResponse {
   warnings: string[];
 }
 
+export interface IngestionQualityReason {
+  code: string;
+  details: Record<string, unknown>;
+}
+
+export interface IngestionQualityAudit {
+  status: "pass" | "rejected";
+  freshness?: Record<string, unknown>;
+  missingness?: Record<string, unknown>;
+  reasons: IngestionQualityReason[];
+}
+
+export interface IngestionQualityResponse {
+  status: "pass" | "rejected";
+  code?: string;
+  message?: string;
+  reasons: IngestionQualityReason[];
+  audit: IngestionQualityAudit;
+}
+
+export interface IngestionQualityRequest {
+  snapshot_retrieved_at: string;
+  reference_at?: string;
+  max_snapshot_age_seconds?: number;
+  max_optional_missing_fraction?: number;
+  records: Array<Record<string, unknown>>;
+}
+
 export interface DraftSlip {
   targetOdds: number;
   maxLegs: number;

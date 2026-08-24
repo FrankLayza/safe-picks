@@ -66,14 +66,14 @@ def validate_ingestion_quality(
     if _timestamp_is_aware(snapshot_retrieved_at) and _timestamp_is_aware(reference):
         age_seconds = (reference - snapshot_retrieved_at).total_seconds()
     freshness = {
-        "snapshot_retrieved_at": snapshot_retrieved_at.isoformat(),
-        "reference_at": reference.isoformat(),
+        "snapshot_retrieved_at": _timestamp_text(snapshot_retrieved_at),
+        "reference_at": _timestamp_text(reference),
         "age_seconds": age_seconds,
         "max_age_seconds": active_policy.max_snapshot_age.total_seconds() if active_policy.max_snapshot_age else None,
         "stale": False,
     }
     if age_seconds is not None and age_seconds < 0:
-        reasons.append(_reason("snapshot_timestamp_in_future", {"snapshot_retrieved_at": snapshot_retrieved_at.isoformat(), "reference_at": reference.isoformat()}))
+        reasons.append(_reason("snapshot_timestamp_in_future", {"snapshot_retrieved_at": _timestamp_text(snapshot_retrieved_at), "reference_at": _timestamp_text(reference)}))
     elif age_seconds is not None and active_policy.max_snapshot_age is not None and age_seconds > active_policy.max_snapshot_age.total_seconds():
         freshness["stale"] = True
         reasons.append(
@@ -110,8 +110,8 @@ def validate_ingestion_quality(
                     "record_timestamp_after_snapshot",
                     {
                         "record_index": index,
-                        "record_retrieved_at": record.retrieved_at.isoformat(),
-                        "snapshot_retrieved_at": snapshot_retrieved_at.isoformat(),
+                        "record_retrieved_at": _timestamp_text(record.retrieved_at),
+                        "snapshot_retrieved_at": _timestamp_text(snapshot_retrieved_at),
                     },
                 )
             )
@@ -158,6 +158,10 @@ def _validate_timestamp(value: datetime, field: str, reasons: list[dict[str, Any
 
 def _timestamp_is_aware(value: object) -> bool:
     return isinstance(value, datetime) and value.tzinfo is not None
+
+
+def _timestamp_text(value: object) -> str | None:
+    return value.isoformat() if isinstance(value, datetime) else None
 
 
 def _reason(code: str, details: dict[str, Any]) -> dict[str, Any]:

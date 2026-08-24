@@ -15,6 +15,7 @@ Endpoints:
 
 - `GET /health`
 - `GET /v1/candidates/today`
+- `POST /v1/ingestion/quality`
 
 ## Provider ingestion boundary
 
@@ -28,6 +29,7 @@ Endpoints:
 - `identity.py` resolves canonical entity IDs and validates duplicate, completion, and correction behavior before a manifest is written.
 - `HistoricalManifestReplay` reconstructs fixture records as of a forecast timestamp using only manifests already retrieved by that time.
 - Ingestion quality validation rejects future or stale snapshots and missing required identity/timestamp fields, while auditing optional-statistic missingness. Configure `INGESTION_MAX_SNAPSHOT_AGE_DAYS` and optionally `INGESTION_MAX_OPTIONAL_MISSING_FRACTION`.
+- `POST /v1/ingestion/quality` exposes the same quality gate to downstream services. Rejected payloads return HTTP 422 with `error.code`, `error.reasons[]`, and `error.audit`.
 
 Run provider tests from this directory:
 
