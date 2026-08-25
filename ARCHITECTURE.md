@@ -1,7 +1,7 @@
 # Safe Picks Architecture
 
 Status: Proposed architecture
-Last updated: 2026-08-23
+Last updated: 2026-08-25
 
 ## System Overview
 
@@ -107,7 +107,7 @@ Responsibilities:
 - Calculate opponent-adjusted strength, recent form, rest, travel, expected lineups, goals, and corners features.
 - Preserve feature version and source snapshot IDs.
 
-The first implementation is `build_fixture_features` (`football-pre-match-v1`). It rejects forecasts after kickoff and excludes incomplete, future, or post-forecast records. `PoissonGoalsModel` (`poisson-dixon-coles-v1`) consumes completed pre-match fixtures and retains training as-of and source provenance; it is a baseline, not calibrated betting performance.
+The first implementation is `build_fixture_features` (`football-pre-match-v1`). It rejects forecasts after kickoff and excludes incomplete, future, or post-forecast records. `PoissonGoalsModel` (`poisson-dixon-coles-v1`) consumes completed pre-match fixtures and retains training as-of and source provenance; it is a baseline, not calibrated betting performance. `evaluate_goals_walk_forward` (`goals-walk-forward-v1`) fits each forecast as-of its kickoff, keeps validation before test, and fits `isotonic-v1` calibrators only on validation observations.
 
 ### Forecasting Service
 

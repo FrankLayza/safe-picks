@@ -1,7 +1,7 @@
 # Safe Picks Project Context
 
 Status: Scaffold implemented / paper-trading validation pending
-Last updated: 2026-08-23
+Last updated: 2026-08-25
 
 ## Product
 
@@ -69,6 +69,7 @@ The project is not ready for real-money use until it demonstrates, on untouched 
 - Ingestion quality validation rejects future/stale snapshots and missing required fields, while optional statistics produce field-level missingness audits and can be threshold-gated.
 - The forecasting API exposes ingestion quality results and structured rejection diagnostics to downstream clients.
 - The first leakage-safe feature pipeline and Poisson/Dixon-Coles goals baseline are implemented for offline evaluation; no performance claim has been established.
+- A dependency-free chronological walk-forward evaluator and per-market isotonic calibration baseline are implemented; they report held-out metrics but do not establish profitability or production calibration.
 - No live provider, trained model, database, paper-trading ledger, or bookmaker integration has been implemented.
 
 ## Key Risks

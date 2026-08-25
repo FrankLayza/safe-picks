@@ -1,7 +1,7 @@
 # Safe Picks Implementation Phases
 
 Status: In progress
-Last updated: 2026-08-23
+Last updated: 2026-08-25
 
 This plan is the implementation companion to [PRD.md](PRD.md). Every phase references PRD requirement IDs. A requirement is only complete when its acceptance criteria in the PRD are met and verified.
 
@@ -103,9 +103,9 @@ PRD coverage: FR-01, FR-02, FR-10, FR-11
 - [x] Implement Poisson/Dixon-Coles goals baseline.
 - [ ] Implement regularized logistic/Poisson models.
 - [ ] Add one gradient-boosting comparison only after baseline data quality is proven.
-- [ ] Use chronological train, validation, and untouched future test windows.
-- [ ] Calibrate each market on held-out temporal data.
-- [ ] Store model, feature, and calibration versions.
+- [x] Use chronological train, validation, and untouched future test windows.
+- [x] Calibrate each supported baseline market on held-out temporal data.
+- [x] Store model, feature, and calibration versions.
 
 Exit criteria: Baselines and candidate models have comparable future-period reports and calibration curves.
 
@@ -182,6 +182,6 @@ Exit criteria: Release approval is evidence-based and does not depend on a headl
 | FR-07 Abstention | Phase 1, Phase 2, Phase 6 | `[~]` empty-set and gate rejection exist; production calibration gates remain unvalidated |
 | FR-08 Paper ledger | Phase 7 | `[ ]` |
 | FR-09 Permitted ingestion | Phase 3 | `[~]` provider boundary, identity, replay, quality checks, and local manifests exist; licence and durable ingestion remain |
-| FR-10 Leakage prevention | Phase 4, Phase 5 | `[ ]` |
-| FR-11 Model evaluation | Phase 5, Phase 7 | `[ ]` |
+| FR-10 Leakage prevention | Phase 4, Phase 5 | `[~]` feature and walk-forward checks exist; broader market and provider coverage remain |
+| FR-11 Model evaluation | Phase 5, Phase 7 | `[~]` baseline metrics/calibration report exists; comparative and paper-trading evaluation remain |
 | FR-12 SportyBet boundary | Phase 8 | `[ ]` |
