@@ -83,14 +83,14 @@ Exit criteria: A historical fixture and odds record can be reproduced exactly fr
 
 PRD coverage: FR-02, FR-09, FR-10
 
-- [ ] Build opponent-adjusted team strength features.
-- [ ] Build home/away and rest/congestion features.
-- [ ] Build exponentially weighted recent-form features.
+- [x] Build opponent-adjusted team strength features.
+- [x] Build home/away and rest/congestion features.
+- [x] Build exponentially weighted recent-form features.
 - [ ] Add expected goals and shot-quality features where licensed data supports them.
 - [ ] Add lineup, injury, suspension, and availability snapshots.
 - [ ] Add corner features only after provider definitions are stable.
-- [ ] Store feature version, source IDs, and forecast timestamp.
-- [ ] Add leakage tests for post-match and future information.
+- [x] Store feature version, source IDs, and forecast timestamp.
+- [x] Add leakage tests for post-match and future information.
 
 Exit criteria: Features are reproducible using only pre-match information and pass leakage checks.
 
@@ -100,7 +100,7 @@ PRD coverage: FR-01, FR-02, FR-10, FR-11
 
 - [ ] Implement class-frequency and home-advantage baselines.
 - [ ] Implement Elo baseline.
-- [ ] Implement Poisson/Dixon-Coles goals baseline.
+- [x] Implement Poisson/Dixon-Coles goals baseline.
 - [ ] Implement regularized logistic/Poisson models.
 - [ ] Add one gradient-boosting comparison only after baseline data quality is proven.
 - [ ] Use chronological train, validation, and untouched future test windows.

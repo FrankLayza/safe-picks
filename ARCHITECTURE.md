@@ -107,6 +107,8 @@ Responsibilities:
 - Calculate opponent-adjusted strength, recent form, rest, travel, expected lineups, goals, and corners features.
 - Preserve feature version and source snapshot IDs.
 
+The first implementation is `build_fixture_features` (`football-pre-match-v1`). It rejects forecasts after kickoff and excludes incomplete, future, or post-forecast records. `PoissonGoalsModel` (`poisson-dixon-coles-v1`) consumes completed pre-match fixtures and retains training as-of and source provenance; it is a baseline, not calibrated betting performance.
+
 ### Forecasting Service
 
 Responsibilities:

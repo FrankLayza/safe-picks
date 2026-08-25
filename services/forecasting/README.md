@@ -30,6 +30,8 @@ Endpoints:
 - `HistoricalManifestReplay` reconstructs fixture records as of a forecast timestamp using only manifests already retrieved by that time.
 - Ingestion quality validation rejects future or stale snapshots and missing required identity/timestamp fields, while auditing optional-statistic missingness. Configure `INGESTION_MAX_SNAPSHOT_AGE_DAYS` and optionally `INGESTION_MAX_OPTIONAL_MISSING_FRACTION`.
 - `POST /v1/ingestion/quality` exposes the same quality gate to downstream services. Rejected payloads return HTTP 422 with `error.code`, `error.reasons[]`, and `error.audit`.
+- `build_fixture_features` creates versioned, leakage-safe pre-match features from replayed fixtures, including recency weighting, home/away splits, rest, completeness, provenance, and opponent-adjusted strength.
+- `PoissonGoalsModel` provides the first goals baseline with smoothed attack/defence rates, recency weighting, and a Dixon-Coles low-score correction. It emits full score probabilities plus totals, BTTS, and 1X2 probabilities.
 
 Run provider tests from this directory:
 
