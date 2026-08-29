@@ -49,6 +49,27 @@ export function expectedValue(probability: number, odds: number): number {
   return probability * odds - 1;
 }
 
+function unitInterval(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+export function candidateRanking(candidate: MarketCandidate, eligible = candidate.status === "eligible"): { qualityPenalty: number; rankingScore: number } {
+  const positiveEdge = Math.max(0, candidate.estimatedEdge);
+  if (!eligible || candidate.calibrationError === undefined) return { qualityPenalty: positiveEdge, rankingScore: 0 };
+  const reliability = unitInterval(candidate.dataCompleteness)
+    * (1 - unitInterval(candidate.uncertainty))
+    * (1 - unitInterval(candidate.calibrationError))
+    * (1 - unitInterval(candidate.distributionShift ?? 0));
+  const rankingScore = positiveEdge * reliability;
+  return { qualityPenalty: positiveEdge - rankingScore, rankingScore };
+}
+
+export function rankingScore(candidate: MarketCandidate): number {
+  return candidate.rankingScore !== undefined && Number.isFinite(candidate.rankingScore)
+    ? candidate.rankingScore
+    : candidateRanking(candidate).rankingScore;
+}
+
 export function evaluateCandidate(
   candidate: MarketCandidate,
   marketQuotes: MarketQuote[],
@@ -69,19 +90,21 @@ export function evaluateCandidate(
   if (!decision && fairProbability === undefined) decision = rejection("MISSING_MARKET_PEERS", "No de-vigged market probability exists for this selection.");
 
   const edge = fairProbability === undefined ? candidate.estimatedEdge : candidate.modelProbability - fairProbability;
+  const pricedCandidate = { ...candidate, estimatedEdge: edge };
+  const ranking = candidateRanking(pricedCandidate, !decision);
   if (!decision && edge < config.minEdge) decision = rejection("LOW_EDGE", "The calibrated probability does not clear the minimum value edge.");
 
   if (decision) {
-    return { ...candidate, status: decision.status, rejectionCode: decision.rejectionCode, reason: decision.reason, fairProbability, fairOdds: fairProbability ? 1 / fairProbability : undefined, estimatedEdge: edge };
+    return { ...pricedCandidate, ...candidateRanking(pricedCandidate, false), status: decision.status, rejectionCode: decision.rejectionCode, reason: decision.reason, fairProbability, fairOdds: fairProbability ? 1 / fairProbability : undefined };
   }
 
-  return { ...candidate, status: "eligible", rejectionCode: undefined, reason: "Passed eligibility, freshness, calibration, and value gates.", fairProbability, fairOdds: 1 / (fairProbability as number), estimatedEdge: edge };
+  return { ...pricedCandidate, ...ranking, status: "eligible", rejectionCode: undefined, reason: "Passed eligibility, freshness, calibration, and value gates.", fairProbability, fairOdds: 1 / (fairProbability as number) };
 }
 
 export function applyCorrelationFilter(candidates: MarketCandidate[]): MarketCandidate[] {
   const selected: MarketCandidate[] = [];
   const groups = new Set<string>();
-  for (const candidate of [...candidates].sort((a, b) => b.estimatedEdge - a.estimatedEdge)) {
+  for (const candidate of [...candidates].sort((a, b) => rankingScore(b) - rankingScore(a))) {
     if (candidate.status !== "eligible" || !candidate.correlationGroup || !groups.has(candidate.correlationGroup)) {
       selected.push(candidate);
       if (candidate.status === "eligible" && candidate.correlationGroup) groups.add(candidate.correlationGroup);

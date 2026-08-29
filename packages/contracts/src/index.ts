@@ -44,6 +44,8 @@ export interface MarketCandidate {
   modelProbability: number;
   impliedProbability: number;
   estimatedEdge: number;
+  qualityPenalty?: number;
+  rankingScore?: number;
   fairProbability?: number;
   fairOdds?: number;
   uncertainty: number;

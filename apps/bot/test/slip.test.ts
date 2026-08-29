@@ -19,6 +19,8 @@ function candidate(overrides: Partial<MarketCandidate> = {}): MarketCandidate {
     estimatedEdge: 0.08,
     uncertainty: 0.1,
     dataCompleteness: 0.95,
+    calibrationError: 0.04,
+    distributionShift: 0.05,
     modelVersion: "test-v1",
     oddsObservedAt: "2026-08-23T12:00:00Z",
     status: "eligible",
@@ -52,6 +54,15 @@ describe("draft selection", () => {
     ], 2, 2);
 
     expect(draft.candidates.map(({ id }) => id)).toEqual(["high", "low"]);
+  });
+
+  it("prefers quality-adjusted ranking over a larger raw edge", () => {
+    const draft = buildDraft([
+      candidate({ id: "raw-edge", fixtureId: "fixture-raw", estimatedEdge: 0.14, rankingScore: 0.04 }),
+      candidate({ id: "reliable", fixtureId: "fixture-reliable", estimatedEdge: 0.09, rankingScore: 0.07 }),
+    ], 2, 2);
+
+    expect(draft.candidates.map(({ id }) => id)).toEqual(["reliable", "raw-edge"]);
   });
 
   it("selects at most one candidate from each fixture", () => {

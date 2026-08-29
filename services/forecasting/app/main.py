@@ -48,6 +48,8 @@ class MarketCandidate(BaseModel):
     modelProbability: float = Field(ge=0, le=1)
     impliedProbability: float = Field(ge=0, le=1)
     estimatedEdge: float
+    qualityPenalty: float | None = Field(default=None, ge=0)
+    rankingScore: float | None = Field(default=None, ge=0)
     fairProbability: float | None = None
     fairOdds: float | None = None
     uncertainty: float = Field(ge=0, le=1)

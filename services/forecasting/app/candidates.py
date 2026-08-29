@@ -158,7 +158,7 @@ def generate_candidates(
     return CandidateGenerationResult(
         generated_at,
         str(manifest_path),
-        tuple(candidates),
+        tuple(sorted(candidates, key=lambda item: (-item["rankingScore"], item["id"]))),
         tuple(warnings),
         tuple(diagnostics),
     )
@@ -235,17 +235,14 @@ def _generate_event_candidates(
                 )
             )
             continue
-        for quote, raw_probability, calibration_key in probabilities:
-            calibrator = calibrators.get(calibration_key)
-            model_probability = raw_probability
-            calibration_error: float | None = None
-            status = "abstain"
-            reason = "Calibration artifact unavailable; abstaining from actionable selection."
-            if calibrator is not None:
-                model_probability = calibrator.predict(raw_probability)
-                calibration_error = calibrator.error
-                status = "eligible"
-                reason = "Generated from the accepted odds manifest and leakage-safe goals model."
+        calibrated = _calibrate_market_probabilities(market, probabilities, calibrators)
+        for quote, model_probability, calibration_error in calibrated:
+            status = "eligible" if calibration_error is not None else "abstain"
+            reason = (
+                "Generated from the accepted odds manifest and leakage-safe goals model."
+                if status == "eligible"
+                else "Calibration artifact unavailable; abstaining from actionable selection."
+            )
             output.append(
                 _candidate_payload(
                     event,
@@ -286,6 +283,16 @@ def _candidate_payload(
     market_name = _api_market_name(market)
     market_line = line if market == "total" else None
     implied = 1.0 / quote.odds
+    fair_probability = _fair_probability(quote, group)
+    edge = model_probability - fair_probability
+    quality_penalty, ranking_score = _ranking_values(
+        edge,
+        uncertainty,
+        completeness,
+        calibration_error,
+        0.0,
+        status == "eligible",
+    )
     return {
         "id": ":".join(
             [fixture_id, market_name, normalize_identity_label(quote.selection, "selection"), str(line or "none"), quote.bookmaker]
@@ -301,7 +308,11 @@ def _candidate_payload(
         "marketQuotes": [{"selection": item.selection, "odds": item.odds} for item in group],
         "modelProbability": model_probability,
         "impliedProbability": implied,
-        "estimatedEdge": model_probability - implied,
+        "estimatedEdge": edge,
+        "qualityPenalty": quality_penalty,
+        "rankingScore": ranking_score,
+        "fairProbability": fair_probability,
+        "fairOdds": 1.0 / fair_probability,
         "uncertainty": uncertainty,
         "dataCompleteness": completeness,
         "calibrationError": calibration_error,
@@ -316,6 +327,93 @@ def _candidate_payload(
 
 def model_version(model: PoissonGoalsModel, calibrated: bool) -> str:
     return f"{MODEL_VERSION}+{'calibrated' if calibrated else 'raw'}"
+
+
+def _fair_probability(quote: OddsQuote, group: list[OddsQuote]) -> float:
+    total = sum(1.0 / item.odds for item in group)
+    if total <= 0:
+        raise ValueError("market group has no valid implied probability")
+    return (1.0 / quote.odds) / total
+
+
+def _ranking_values(
+    edge: float,
+    uncertainty: float,
+    completeness: float,
+    calibration_error: float | None,
+    distribution_shift: float,
+    eligible: bool,
+) -> tuple[float, float]:
+    positive_edge = max(0.0, edge)
+    if not eligible or calibration_error is None:
+        return positive_edge, 0.0
+    reliability = (
+        _unit_interval(completeness)
+        * (1.0 - _unit_interval(uncertainty))
+        * (1.0 - _unit_interval(calibration_error))
+        * (1.0 - _unit_interval(distribution_shift))
+    )
+    score = positive_edge * reliability
+    return positive_edge - score, score
+
+
+def _unit_interval(value: float) -> float:
+    return max(0.0, min(1.0, value))
+
+
+def _calibrate_market_probabilities(
+    market: str,
+    probabilities: list[tuple[OddsQuote, float, str]],
+    calibrators: dict[str, CalibrationSpec],
+) -> list[tuple[OddsQuote, float, float | None]]:
+    available = [calibrators.get(key) for _, _, key in probabilities]
+    if market == "match result":
+        if any(spec is None for spec in available):
+            return [(quote, probability, None) for quote, probability, _ in probabilities]
+        values = [
+            spec.predict(probability)
+            for (_, probability, _), spec in zip(probabilities, available)
+            if spec is not None
+        ]
+        total = sum(values)
+        if total <= 0:
+            return [(quote, probability, None) for quote, probability, _ in probabilities]
+        return [
+            (quote, value / total, spec.error if spec is not None else None)
+            for (quote, _, _), value, spec in zip(probabilities, values, available)
+        ]
+
+    if len(probabilities) == 2:
+        direct = [index for index, spec in enumerate(available) if spec is not None]
+        if not direct:
+            return [(quote, probability, None) for quote, probability, _ in probabilities]
+        if len(direct) == 1:
+            index = direct[0]
+            spec = available[index]
+            if spec is None:
+                return [(quote, probability, None) for quote, probability, _ in probabilities]
+            calibrated = spec.predict(probabilities[index][1])
+            values = [1.0 - calibrated, 1.0 - calibrated]
+            values[index] = calibrated
+            values[1 - index] = 1.0 - calibrated
+            return [
+                (quote, values[item_index], spec.error)
+                for item_index, (quote, _, _) in enumerate(probabilities)
+            ]
+        values = [
+            spec.predict(probability)
+            for (_, probability, _), spec in zip(probabilities, available)
+            if spec is not None
+        ]
+        total = sum(values)
+        if total <= 0:
+            return [(quote, probability, None) for quote, probability, _ in probabilities]
+        return [
+            (quote, value / total, max(spec.error for spec in available if spec is not None))
+            for (quote, _, _), value in zip(probabilities, values)
+        ]
+
+    return [(quote, probability, None) for quote, probability, _ in probabilities]
 
 
 def _market_probabilities(

@@ -1,12 +1,12 @@
 import type { DraftSlip, MarketCandidate } from "@safe-picks/contracts";
-import { applyCorrelationFilter } from "./decision.js";
+import { applyCorrelationFilter, rankingScore } from "./decision.js";
 
 export function buildDraft(candidates: MarketCandidate[], targetOdds: number, maxLegs: number): DraftSlip {
   const selected: MarketCandidate[] = [];
   const usedFixtures = new Set<string>();
   const ranked = applyCorrelationFilter(candidates)
     .filter((candidate) => candidate.status === "eligible")
-    .sort((a, b) => b.estimatedEdge - a.estimatedEdge);
+    .sort((a, b) => rankingScore(b) - rankingScore(a));
 
   for (const candidate of ranked) {
     if (selected.length >= maxLegs || usedFixtures.has(candidate.fixtureId)) continue;
@@ -17,7 +17,7 @@ export function buildDraft(candidates: MarketCandidate[], targetOdds: number, ma
   const combinedOdds = selected.reduce((total, candidate) => total * candidate.odds, 1);
   const estimatedJointProbability = selected.reduce((total, candidate) => total * candidate.modelProbability, 1);
   const warnings = [
-    "Development mock candidates are not betting advice.",
+    "Model-backed development candidates are not betting advice.",
     "Joint probability is a conservative independence estimate; real legs may be correlated.",
   ];
   if (selected.length === 0) {
@@ -37,6 +37,6 @@ export function buildDraft(candidates: MarketCandidate[], targetOdds: number, ma
 }
 
 export function trimDraft(draft: DraftSlip): DraftSlip {
-  const candidates = [...draft.candidates].sort((a, b) => b.estimatedEdge - a.estimatedEdge).slice(0, Math.max(1, draft.maxLegs - 1));
+  const candidates = [...draft.candidates].sort((a, b) => rankingScore(b) - rankingScore(a)).slice(0, Math.max(1, draft.maxLegs - 1));
   return buildDraft(candidates, draft.targetOdds, draft.maxLegs);
 }

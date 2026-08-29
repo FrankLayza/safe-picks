@@ -61,7 +61,8 @@ The project is not ready for real-money use until it demonstrates, on untouched 
 
 - Research blueprint exists in the HIOS ideas folder.
 - TypeScript Telegram bot scaffold exists with `/safe_bets`, `/trim`, `/slip`, and `/help`.
-- Python FastAPI forecasting boundary exists with deterministic development candidates.
+- Python FastAPI forecasting boundary generates model-backed 1X2 and totals candidates from accepted odds manifests, with BTTS support when those quotes are available.
+- Candidate ranking uses de-vigged calibrated edge with explicit data-quality and uncertainty penalties.
 - Shared contracts, environment template, and workspace tooling exist.
 - Phase 3 provider boundary exists for Football-Data.co.uk historical CSVs, The Odds API snapshots, raw file snapshots, and provider metadata.
 - Development ingestion resolves canonical team, competition, fixture, and market identities and audits duplicate/completion rows while rejecting conflicting corrections.
@@ -71,7 +72,7 @@ The project is not ready for real-money use until it demonstrates, on untouched 
 - The first leakage-safe feature pipeline and Poisson/Dixon-Coles goals baseline are implemented for offline evaluation; no performance claim has been established.
 - A dependency-free chronological walk-forward evaluator and per-market isotonic calibration baseline are implemented; they report held-out metrics but do not establish profitability or production calibration.
 - Scheduled The Odds API ingestion stores private raw snapshots, normalizes current events and quotes, links canonical teams and competitions to historical records, and retains event-level rejection diagnostics.
-- No configured production provider account, live model-backed candidate endpoint, database, paper-trading ledger, or bookmaker integration has been implemented.
+- No configured production provider account, durable database, calibration export job, decision ledger, or bookmaker integration has been implemented.
 
 ## Key Risks
 

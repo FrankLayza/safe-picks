@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { MarketCandidate } from "@safe-picks/contracts";
 import {
   applyCorrelationFilter,
+  candidateRanking,
   deVigProbabilities,
   evaluateCandidate,
   expectedValue,
@@ -56,6 +57,14 @@ describe("market value calculations", () => {
     expect([...probabilities.values()].reduce((sum, value) => sum + value, 0)).toBeCloseTo(1, 8);
     expect(expectedValue(0.52, 2.1)).toBeCloseTo(0.092, 8);
   });
+
+  it("penalizes edge for uncertainty and incomplete data", () => {
+    const strongData = candidateRanking(candidate({ estimatedEdge: 0.08, dataCompleteness: 0.98, uncertainty: 0.02 }));
+    const weakData = candidateRanking(candidate({ estimatedEdge: 0.12, dataCompleteness: 0.81, uncertainty: 0.24, calibrationError: 0.09, distributionShift: 0.19 }));
+
+    expect(strongData.rankingScore).toBeGreaterThan(weakData.rankingScore);
+    expect(weakData.qualityPenalty).toBeGreaterThan(strongData.qualityPenalty);
+  });
 });
 
 describe("candidate eligibility gates", () => {
@@ -72,6 +81,8 @@ describe("candidate eligibility gates", () => {
     expect(result.rejectionCode).toBeUndefined();
     expect(result.fairProbability).toBeDefined();
     expect(result.estimatedEdge).toBeGreaterThan(config.minEdge);
+    expect(result.rankingScore).toBeGreaterThan(0);
+    expect(result.qualityPenalty).toBeGreaterThan(0);
   });
 
   it.each([
@@ -112,5 +123,15 @@ describe("correlation filter", () => {
     expect(results.find(({ id }) => id === "stronger")?.status).toBe("eligible");
     expect(results.find(({ id }) => id === "weaker")?.rejectionCode).toBe("CORRELATED_SELECTION");
     expect(results.find(({ id }) => id === "independent")?.status).toBe("eligible");
+  });
+
+  it("uses quality-adjusted rank instead of raw edge", () => {
+    const results = applyCorrelationFilter([
+      candidate({ id: "higher-edge", estimatedEdge: 0.12, rankingScore: 0.04 }),
+      candidate({ id: "better-rank", estimatedEdge: 0.08, rankingScore: 0.07 }),
+    ]);
+
+    expect(results.find(({ id }) => id === "better-rank")?.status).toBe("eligible");
+    expect(results.find(({ id }) => id === "higher-edge")?.rejectionCode).toBe("CORRELATED_SELECTION");
   });
 });

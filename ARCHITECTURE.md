@@ -129,6 +129,8 @@ Responsibilities:
 - Rank candidates by risk-adjusted value, not raw hit probability.
 - Return “No qualifying bet” when gates fail.
 
+The current candidate ranking score starts with positive calibrated edge against the de-vigged bookmaker probability. It multiplies that edge by data completeness and by the complements of uncertainty, calibration error, and distribution shift. Raw edge, total quality penalty, and final ranking score remain separate response fields so downstream selection is reproducible.
+
 ### Slip Builder
 
 Responsibilities:
@@ -222,7 +224,7 @@ Ingestion quality failures use a stable error envelope: HTTP 422 with `error.cod
 
 ## Known Limitations
 
-- Current architecture is unimplemented.
+- The architecture is partially implemented with local manifest storage rather than the planned durable database and object storage.
 - Provider choices and licenses are not finalized.
 - SportyBet code generation is not verified.
 - Joint accumulator probability and correlation modeling require empirical validation.

@@ -36,8 +36,8 @@ pnpm install
 pnpm --filter @safe-picks/bot dev
 ```
 
-Without a Telegram token, the bot intentionally exits with a configuration error. The forecasting health and mock candidate endpoints do not require credentials.
+Without a Telegram token, the bot intentionally exits with a configuration error. The forecasting health and model-backed candidate endpoints do not require credentials, but candidate generation requires accepted local manifests and an optional calibration artifact for actionable status.
 
 ## Status
 
-No configured production provider account, live model-backed candidate endpoint, database, SportyBet integration, or real-money wagering is included.
+No configured production provider account, database, calibration export job, SportyBet integration, or real-money wagering is included.

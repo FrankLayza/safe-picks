@@ -1,5 +1,4 @@
 import json
-import os
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
@@ -138,7 +137,7 @@ class CandidateGenerationTests(unittest.TestCase):
         path = Path(root) / "calibration.json"
         markets = {
             key: {"thresholds": [0.0, 1.0], "values": [0.01, 0.99], "calibration_error": 0.04}
-            for key in ("home_win", "draw", "away_win", "over_1.5", "under_1.5")
+            for key in ("home_win", "draw", "away_win", "over_1.5")
         }
         path.write_text(json.dumps({"version": "isotonic-v1", "markets": markets}), encoding="utf-8")
         return str(path)
@@ -153,6 +152,16 @@ class CandidateGenerationTests(unittest.TestCase):
             self.assertEqual(len(result.candidates), 5)
             self.assertTrue(all(item["status"] == "eligible" for item in result.candidates))
             self.assertTrue(all(item["modelVersion"].endswith("+calibrated") for item in result.candidates))
+            self.assertTrue(all(item["fairProbability"] > 0 for item in result.candidates))
+            self.assertTrue(all(item["rankingScore"] <= max(0, item["estimatedEdge"]) for item in result.candidates))
+            self.assertEqual(
+                [item["rankingScore"] for item in result.candidates],
+                sorted((item["rankingScore"] for item in result.candidates), reverse=True),
+            )
+            result_probabilities = [item["modelProbability"] for item in result.candidates if item["market"] == "match_result"]
+            total_probabilities = [item["modelProbability"] for item in result.candidates if item["market"] == "goals_over_under"]
+            self.assertAlmostEqual(sum(result_probabilities), 1.0)
+            self.assertAlmostEqual(sum(total_probabilities), 1.0)
             self.assertIn("goals_over_under", {item["market"] for item in result.candidates})
             self.assertIn("match_result", {item["market"] for item in result.candidates})
 
@@ -164,6 +173,7 @@ class CandidateGenerationTests(unittest.TestCase):
 
             self.assertEqual(len(result.candidates), 5)
             self.assertTrue(all(item["status"] == "abstain" for item in result.candidates))
+            self.assertTrue(all(item["rankingScore"] == 0 for item in result.candidates))
             self.assertIn("calibration_artifact_unavailable", {item["code"] for item in result.diagnostics})
 
     def test_missing_manifest_returns_machine_readable_diagnostic(self):
