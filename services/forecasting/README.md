@@ -1,6 +1,6 @@
 # Forecasting Service
 
-This FastAPI service exposes deterministic development candidates and offline football forecasting components. The statistical baseline is for chronological evaluation and paper-trading research; it is not a claim of profitable or calibrated betting performance.
+This FastAPI service exposes model-backed football candidates from accepted odds manifests and offline forecasting components. The statistical baseline is for chronological evaluation and paper-trading research; it is not a claim of profitable or calibrated betting performance.
 
 Run locally:
 
@@ -33,6 +33,7 @@ Endpoints:
 - `POST /v1/ingestion/quality` exposes the same quality gate to downstream services. Rejected payloads return HTTP 422 with `error.code`, `error.reasons[]`, and `error.audit`.
 - `build_fixture_features` creates versioned, leakage-safe pre-match features from replayed fixtures, including recency weighting, home/away splits, rest, completeness, provenance, and opponent-adjusted strength.
 - `PoissonGoalsModel` provides the first goals baseline with smoothed attack/defence rates, recency weighting, and a Dixon-Coles low-score correction. It emits full score probabilities plus totals, BTTS, and 1X2 probabilities.
+- `generate_candidates` selects the latest accepted The Odds API manifest, replays historical fixtures as of its retrieval time, and emits bookmaker-specific 1X2, totals, and BTTS candidates. The endpoint returns machine-readable diagnostics and abstains when training or calibration prerequisites are not met.
 - `evaluate_goals_walk_forward` runs chronological validation/test scoring and `isotonic-v1` calibration for each supported binary market. It reports Brier score, log loss, accuracy, reliability buckets, and explicit abstentions when training data is insufficient.
 
 Run provider tests from this directory:

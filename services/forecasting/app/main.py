@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import os
 from typing import Any, Literal
 
 from fastapi import FastAPI, Request
@@ -7,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from .providers.models import FixtureRecord
 from .providers.quality import IngestionQualityPolicy, IngestionValidationError, validate_ingestion_quality
+from .candidates import generate_candidates
 
 app = FastAPI(title="Safe Picks Forecasting Service", version="0.1.0")
 
@@ -62,8 +64,10 @@ class MarketCandidate(BaseModel):
 class CandidatesResponse(BaseModel):
     generatedAt: str
     source: Literal["development-mock", "forecasting-service"]
+    sourceManifest: str | None = None
     candidates: list[MarketCandidate]
     warnings: list[str]
+    diagnostics: list[dict[str, object]] = Field(default_factory=list)
 
 
 class IngestionFixturePayload(BaseModel):
@@ -104,66 +108,6 @@ class IngestionQualityResponse(BaseModel):
     audit: dict[str, object]
 
 
-def mock_candidates() -> list[MarketCandidate]:
-    observed = datetime.now(timezone.utc).isoformat()
-    return [
-        MarketCandidate(
-            id="dev-001",
-            fixtureId="fixture-dev-001",
-            kickoff="2026-08-23T18:00:00Z",
-            homeTeam="Development FC",
-            awayTeam="Example United",
-            market="goals_over_under",
-            selection="Over 1.5 goals",
-            line=1.5,
-            odds=1.32,
-            modelProbability=0.78,
-            impliedProbability=1 / 1.32,
-            estimatedEdge=0.022,
-            uncertainty=0.12,
-            dataCompleteness=0.92,
-            calibrationError=0.04,
-            distributionShift=0.02,
-            correlationGroup="fixture-dev-001-goals",
-            marketQuotes=[
-                {"selection": "Over 1.5 goals", "odds": 1.32},
-                {"selection": "Under 1.5 goals", "odds": 3.80},
-            ],
-            modelVersion="mock-v0",
-            oddsObservedAt=observed,
-            status="eligible",
-            reason="Development-only deterministic candidate.",
-        ),
-        MarketCandidate(
-            id="dev-002",
-            fixtureId="fixture-dev-002",
-            kickoff="2026-08-23T20:00:00Z",
-            homeTeam="Sample Athletic",
-            awayTeam="Test City",
-            market="corners_over_under",
-            selection="Over 8.5 corners",
-            line=8.5,
-            odds=1.72,
-            modelProbability=0.64,
-            impliedProbability=1 / 1.72,
-            estimatedEdge=0.012,
-            uncertainty=0.19,
-            dataCompleteness=0.84,
-            calibrationError=0.05,
-            distributionShift=0.03,
-            correlationGroup="fixture-dev-002-corners",
-            marketQuotes=[
-                {"selection": "Over 8.5 corners", "odds": 1.72},
-                {"selection": "Under 8.5 corners", "odds": 1.95},
-            ],
-            modelVersion="mock-v0",
-            oddsObservedAt=observed,
-            status="eligible",
-            reason="Development-only deterministic candidate.",
-        ),
-    ]
-
-
 def parse_api_timestamp(value: Any) -> Any:
     if not isinstance(value, str):
         return value
@@ -199,16 +143,24 @@ def fixture_from_api(payload: IngestionFixturePayload) -> FixtureRecord:
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "service": "forecasting", "mode": "development-mock"}
+    return {"status": "ok", "service": "forecasting", "mode": "model-backed"}
 
 
 @app.get("/v1/candidates/today", response_model=CandidatesResponse)
 def today_candidates() -> CandidatesResponse:
+    result = generate_candidates(
+        os.getenv("RAW_DATA_ROOT", "data/raw"),
+        historical_league=os.getenv("FOOTBALL_DATA_LEAGUE") or None,
+        min_training_matches=int(os.getenv("MODEL_MIN_TRAINING_MATCHES", "20")),
+        calibration_artifact=os.getenv("CALIBRATION_ARTIFACT_PATH") or None,
+    )
     return CandidatesResponse(
-        generatedAt=datetime.now(timezone.utc).isoformat(),
-        source="development-mock",
-        candidates=mock_candidates(),
-        warnings=["This response uses deterministic mock data; it is not a forecast or betting advice."],
+        generatedAt=result.generated_at.isoformat(),
+        source="forecasting-service",
+        sourceManifest=result.source_manifest,
+        candidates=[MarketCandidate.model_validate(candidate) for candidate in result.candidates],
+        warnings=list(result.warnings),
+        diagnostics=list(result.diagnostics),
     )
 
 

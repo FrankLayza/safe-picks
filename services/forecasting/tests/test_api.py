@@ -2,7 +2,7 @@ import asyncio
 import json
 import unittest
 
-from app.main import IngestionQualityRequest, app, ingestion_quality, ingestion_validation_error_handler
+from app.main import IngestionQualityRequest, app, ingestion_quality, ingestion_validation_error_handler, today_candidates
 from app.providers.quality import IngestionValidationError
 
 
@@ -72,6 +72,13 @@ class ForecastingApiTests(unittest.TestCase):
     def test_ingestion_quality_route_is_registered(self):
         routes = {getattr(route, "path", None) for route in app.routes}
         self.assertIn("/v1/ingestion/quality", routes)
+
+    def test_today_candidates_uses_model_backed_generator_and_diagnostics(self):
+        response = today_candidates()
+
+        self.assertEqual(response.source, "forecasting-service")
+        self.assertTrue(response.diagnostics)
+        self.assertNotEqual(response.source, "development-mock")
 
 
 if __name__ == "__main__":

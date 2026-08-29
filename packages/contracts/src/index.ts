@@ -61,8 +61,10 @@ export interface MarketCandidate {
 export interface TodayCandidatesResponse {
   generatedAt: string;
   source: "development-mock" | "forecasting-service";
+  sourceManifest?: string;
   candidates: MarketCandidate[];
   warnings: string[];
+  diagnostics?: IngestionQualityReason[];
 }
 
 export interface IngestionQualityReason {

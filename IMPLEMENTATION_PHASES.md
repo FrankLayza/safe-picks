@@ -114,7 +114,7 @@ Exit criteria: Baselines and candidate models have comparable future-period repo
 
 PRD coverage: FR-01 through FR-07, FR-11
 
-- [ ] Generate candidates for goals, BTTS, result/double chance, and eligible corners.
+- [~] Generate model-backed candidates for goals, BTTS, and result from the latest accepted odds manifest; double chance and corners remain disabled pending validated market/model support.
 - [ ] Rank by calibrated edge after uncertainty and data-quality penalties.
 - [ ] Reject short-price candidates with insufficient actionable value.
 - [ ] Apply one-leg-per-match defaults.
@@ -174,8 +174,8 @@ Exit criteria: Release approval is evidence-based and does not depend on a headl
 
 | PRD requirement | Primary phase | Current status |
 |---|---|---|
-| FR-01 Multi-market candidates | Phase 2, Phase 6 | `[~]` development mock only; decision layer is implemented |
-| FR-02 Forecast metadata | Phase 2, Phase 5 | `[x]` contract and decision metadata exist; no real model |
+| FR-01 Multi-market candidates | Phase 2, Phase 6 | `[~]` model-backed goals/BTTS/result generation exists; selector and additional markets remain open |
+| FR-02 Forecast metadata | Phase 2, Phase 5 | `[~]` contract and model provenance exist; production calibration artifacts remain operator-supplied |
 | FR-03 Safe-bets draft | Phase 1 | `[x]` works with mock candidates and tested selection behavior |
 | FR-04 Risk trimming | Phase 1, Phase 6 | `[~]` basic scaffold only |
 | FR-05 Slip inspection | Phase 1 | `[x]` works with in-memory draft and tested calculations |

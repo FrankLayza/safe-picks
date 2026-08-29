@@ -1,6 +1,6 @@
 # Safe Picks
 
-Football betting decision-support bot. The Telegram workflow still uses deterministic development candidates, while historical results, current odds ingestion, and the first statistical model exist as offline service components.
+Football betting decision-support bot. The forecasting API now generates model-backed development candidates from accepted, timestamped odds manifests and leakage-safe historical results. Outputs remain research/paper-trading candidates, not betting advice.
 
 ## Repository layout
 
