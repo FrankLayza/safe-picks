@@ -120,7 +120,7 @@ PRD coverage: FR-01 through FR-07, FR-11
 - [x] Apply one-leg-per-match defaults in draft construction and verify with automated tests.
 - [x] Detect correlated legs across markets and fixtures using explicit fixture and canonical-team keys; reject weaker overlaps with an auditable reason.
 - [x] Estimate joint slip probability conservatively with a documented Frechet lower bound and retain the independence product as a reference only.
-- [ ] Make `trim` explain every removed leg.
+- [x] Make `trim` retain and display every removed leg with a machine-readable code and risk-adjusted explanation.
 - [ ] Return `No qualifying bet` when no candidate passes gates.
 - [ ] Add candidate and slip decision audit records.
 
@@ -177,7 +177,7 @@ Exit criteria: Release approval is evidence-based and does not depend on a headl
 | FR-01 Multi-market candidates | Phase 2, Phase 6 | `[~]` model-backed goals/BTTS/result generation exists; selector and additional markets remain open |
 | FR-02 Forecast metadata | Phase 2, Phase 5 | `[~]` contract and model provenance exist; production calibration artifacts remain operator-supplied |
 | FR-03 Safe-bets draft | Phase 1 | `[x]` works with model-backed candidates and tested quality-adjusted selection behavior |
-| FR-04 Risk trimming | Phase 1, Phase 6 | `[~]` basic scaffold only |
+| FR-04 Risk trimming | Phase 1, Phase 6 | `[x]` repeated trimming removes the current weakest leg and preserves structured explanations |
 | FR-05 Slip inspection | Phase 1 | `[x]` works with in-memory draft and tested calculations |
 | FR-06 Help and wording | Phase 1 | `[x]` command and warnings exist |
 | FR-07 Abstention | Phase 1, Phase 2, Phase 6 | `[~]` empty-set and gate rejection exist; production calibration gates remain unvalidated |

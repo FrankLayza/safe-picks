@@ -108,6 +108,25 @@ export interface DraftSlip {
   estimatedJointProbability: number;
   independenceJointProbability?: number;
   jointProbabilityMethod?: "frechet_lower_bound" | "single_leg" | "empty_slip";
+  removedLegs?: SlipRemoval[];
   status: "draft" | "abstain";
   warnings: string[];
+}
+
+export type SlipRemovalCode = "LOWEST_RISK_ADJUSTED_RANK";
+
+export interface SlipRemoval {
+  candidateId: string;
+  fixtureId: string;
+  homeTeam: string;
+  awayTeam: string;
+  market: MarketType;
+  selection: string;
+  odds: number;
+  rankingScore: number;
+  estimatedEdge: number;
+  uncertainty: number;
+  dataCompleteness: number;
+  code: SlipRemovalCode;
+  reason: string;
 }

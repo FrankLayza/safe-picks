@@ -1,4 +1,4 @@
-import type { DraftSlip, MarketCandidate } from "@safe-picks/contracts";
+import type { DraftSlip, MarketCandidate, SlipRemoval } from "@safe-picks/contracts";
 import { applyCorrelationFilter, rankingScore } from "./decision.js";
 
 export function independenceJointProbability(probabilities: number[]): number {
@@ -62,6 +62,42 @@ export function buildDraft(candidates: MarketCandidate[], targetOdds: number, ma
 }
 
 export function trimDraft(draft: DraftSlip): DraftSlip {
-  const candidates = [...draft.candidates].sort((a, b) => rankingScore(b) - rankingScore(a)).slice(0, Math.max(1, draft.maxLegs - 1));
-  return buildDraft(candidates, draft.targetOdds, draft.maxLegs);
+  if (draft.candidates.length <= 1) {
+    const warning = "Trim kept the final remaining leg.";
+    return {
+      ...draft,
+      warnings: draft.warnings.includes(warning) ? draft.warnings : [...draft.warnings, warning],
+    };
+  }
+  const ordered = [...draft.candidates].sort((a, b) => {
+    const scoreDifference = rankingScore(a) - rankingScore(b);
+    return scoreDifference === 0 ? a.id.localeCompare(b.id) : scoreDifference;
+  });
+  const removed = ordered[0];
+  const candidates = draft.candidates.filter((candidate) => candidate.id !== removed.id);
+  const removal = trimRemoval(removed);
+  const rebuilt = buildDraft(candidates, draft.targetOdds, draft.maxLegs);
+  return {
+    ...rebuilt,
+    removedLegs: [...(draft.removedLegs ?? []), removal],
+  };
+}
+
+function trimRemoval(candidate: MarketCandidate): SlipRemoval {
+  const score = rankingScore(candidate);
+  return {
+    candidateId: candidate.id,
+    fixtureId: candidate.fixtureId,
+    homeTeam: candidate.homeTeam,
+    awayTeam: candidate.awayTeam,
+    market: candidate.market,
+    selection: candidate.selection,
+    odds: candidate.odds,
+    rankingScore: score,
+    estimatedEdge: candidate.estimatedEdge,
+    uncertainty: candidate.uncertainty,
+    dataCompleteness: candidate.dataCompleteness,
+    code: "LOWEST_RISK_ADJUSTED_RANK",
+    reason: `Removed ${candidate.selection} from ${candidate.homeTeam} vs ${candidate.awayTeam}: lowest risk-adjusted rank ${(score * 100).toFixed(1)}% (edge ${(candidate.estimatedEdge * 100).toFixed(1)}%, uncertainty ${(candidate.uncertainty * 100).toFixed(1)}%, completeness ${(candidate.dataCompleteness * 100).toFixed(1)}%).`,
+  };
 }

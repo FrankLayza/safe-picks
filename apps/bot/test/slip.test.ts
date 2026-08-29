@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MarketCandidate } from "@safe-picks/contracts";
 import { parseSafeBetsArgs } from "../src/commands.js";
+import { formatSlip } from "../src/format.js";
 import { buildDraft, conservativeJointProbability, independenceJointProbability, trimDraft } from "../src/slip.js";
 
 function candidate(overrides: Partial<MarketCandidate> = {}): MarketCandidate {
@@ -110,5 +111,33 @@ describe("draft trimming", () => {
 
     const trimmed = trimDraft(draft);
     expect(trimmed.candidates.map(({ id }) => id)).toEqual(["strong", "medium"]);
+    expect(trimmed.removedLegs).toHaveLength(1);
+    expect(trimmed.removedLegs?.[0]).toMatchObject({
+      candidateId: "weak",
+      code: "LOWEST_RISK_ADJUSTED_RANK",
+      estimatedEdge: 0.01,
+    });
+    expect(trimmed.removedLegs?.[0].reason).toContain("lowest risk-adjusted rank");
+    expect(formatSlip(trimmed)).toContain("Removed legs");
+    expect(formatSlip(trimmed)).toContain("[LOWEST_RISK_ADJUSTED_RANK]");
+  });
+
+  it("removes one current leg per command and preserves cumulative explanations", () => {
+    const draft = buildDraft([
+      candidate({ id: "strong", fixtureId: "fixture-strong", rankingScore: 0.2 }),
+      candidate({ id: "medium", fixtureId: "fixture-medium", rankingScore: 0.1 }),
+      candidate({ id: "weak", fixtureId: "fixture-weak", rankingScore: 0.01 }),
+    ], 3, 3);
+
+    const once = trimDraft(draft);
+    const twice = trimDraft(once);
+    const final = trimDraft(twice);
+
+    expect(once.candidates.map(({ id }) => id)).toEqual(["strong", "medium"]);
+    expect(twice.candidates.map(({ id }) => id)).toEqual(["strong"]);
+    expect(twice.removedLegs?.map(({ candidateId }) => candidateId)).toEqual(["weak", "medium"]);
+    expect(final.candidates.map(({ id }) => id)).toEqual(["strong"]);
+    expect(final.removedLegs).toHaveLength(2);
+    expect(final.warnings).toContain("Trim kept the final remaining leg.");
   });
 });
