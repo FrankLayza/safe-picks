@@ -143,6 +143,8 @@ Responsibilities:
 - Explain every accepted or removed leg.
 - Estimate joint probability conservatively; never assume independence without documenting it.
 
+Candidates carry explicit correlation keys for their fixture and canonical home and away teams. The selector keeps the highest quality-adjusted rank for each occupied key and rejects weaker overlaps with `CORRELATED_SELECTION`. Competition-wide correlation is intentionally not inferred without validated evidence.
+
 ### Paper-Trading Ledger
 
 Responsibilities:

@@ -319,6 +319,11 @@ def _candidate_payload(
         "calibrationError": calibration_error,
         "distributionShift": 0.0,
         "correlationGroup": fixture_id,
+        "correlationGroups": [
+            fixture_id,
+            f"team:{event.get('canonical_home_team_id', '')}",
+            f"team:{event.get('canonical_away_team_id', '')}",
+        ],
         "modelVersion": model_version(model, calibration_error is not None),
         "oddsObservedAt": (quote.observed_at or quote.retrieved_at).isoformat(),
         "status": status,

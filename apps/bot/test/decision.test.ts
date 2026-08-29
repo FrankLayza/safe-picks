@@ -164,4 +164,27 @@ describe("correlation filter", () => {
     expect(results.find(({ id }) => id === "better-rank")?.status).toBe("eligible");
     expect(results.find(({ id }) => id === "higher-edge")?.rejectionCode).toBe("CORRELATED_SELECTION");
   });
+
+  it("rejects a weaker candidate that shares a team key across fixtures", () => {
+    const results = applyCorrelationFilter([
+      candidate({
+        id: "strong-match",
+        fixtureId: "fixture-strong",
+        correlationGroup: "fixture-strong",
+        correlationGroups: ["fixture-strong", "team:home-fc"],
+        rankingScore: 0.08,
+      }),
+      candidate({
+        id: "weak-related",
+        fixtureId: "fixture-related",
+        correlationGroup: "fixture-related",
+        correlationGroups: ["fixture-related", "team:home-fc"],
+        rankingScore: 0.06,
+      }),
+    ]);
+
+    expect(results.find(({ id }) => id === "strong-match")?.status).toBe("eligible");
+    expect(results.find(({ id }) => id === "weak-related")?.rejectionCode).toBe("CORRELATED_SELECTION");
+    expect(results.find(({ id }) => id === "weak-related")?.correlationGroup).toBe("team:home-fc");
+  });
 });

@@ -76,6 +76,12 @@ export function rankingScore(candidate: MarketCandidate): number {
     : candidateRanking(candidate).rankingScore;
 }
 
+function correlationKeys(candidate: MarketCandidate): Set<string> {
+  const keys = candidate.correlationGroups?.filter(Boolean) ?? [];
+  if (keys.length > 0) return new Set(keys);
+  return candidate.correlationGroup ? new Set([candidate.correlationGroup]) : new Set();
+}
+
 export function evaluateCandidate(
   candidate: MarketCandidate,
   marketQuotes: MarketQuote[],
@@ -117,14 +123,24 @@ export function evaluateCandidate(
 
 export function applyCorrelationFilter(candidates: MarketCandidate[]): MarketCandidate[] {
   const selected: MarketCandidate[] = [];
-  const groups = new Set<string>();
+  const occupiedKeys = new Set<string>();
   for (const candidate of [...candidates].sort((a, b) => rankingScore(b) - rankingScore(a))) {
-    if (candidate.status !== "eligible" || !candidate.correlationGroup || !groups.has(candidate.correlationGroup)) {
+    const keys = correlationKeys(candidate);
+    const overlap = [...keys].filter((key) => occupiedKeys.has(key));
+    if (candidate.status !== "eligible" || overlap.length === 0) {
       selected.push(candidate);
-      if (candidate.status === "eligible" && candidate.correlationGroup) groups.add(candidate.correlationGroup);
+      if (candidate.status === "eligible") {
+        for (const key of keys) occupiedKeys.add(key);
+      }
       continue;
     }
-    selected.push({ ...candidate, status: "rejected", rejectionCode: "CORRELATED_SELECTION", reason: "A stronger candidate already occupies this correlation group." });
+    selected.push({
+      ...candidate,
+      status: "rejected",
+      rejectionCode: "CORRELATED_SELECTION",
+      correlationGroup: overlap[0],
+      reason: `A stronger candidate already occupies correlation key ${overlap[0]}.`,
+    });
   }
   return selected;
 }

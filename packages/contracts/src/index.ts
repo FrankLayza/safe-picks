@@ -55,6 +55,7 @@ export interface MarketCandidate {
   calibrationError?: number;
   distributionShift?: number;
   correlationGroup?: string;
+  correlationGroups?: string[];
   modelVersion: string;
   oddsObservedAt: string;
   status: CandidateStatus;

@@ -118,7 +118,7 @@ PRD coverage: FR-01 through FR-07, FR-11
 - [x] Rank by de-vigged calibrated edge after explicit completeness, uncertainty, calibration-error, and distribution-shift penalties.
 - [x] Reject short-price candidates unless they clear configurable stronger de-vigged edge and expected-value thresholds.
 - [x] Apply one-leg-per-match defaults in draft construction and verify with automated tests.
-- [ ] Detect or penalize correlated legs across matches and markets.
+- [x] Detect correlated legs across markets and fixtures using explicit fixture and canonical-team keys; reject weaker overlaps with an auditable reason.
 - [ ] Estimate joint slip probability conservatively.
 - [ ] Make `trim` explain every removed leg.
 - [ ] Return `No qualifying bet` when no candidate passes gates.

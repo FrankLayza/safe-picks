@@ -58,6 +58,7 @@ class MarketCandidate(BaseModel):
     calibrationError: float | None = Field(default=None, ge=0, le=1)
     distributionShift: float | None = Field(default=None, ge=0, le=1)
     correlationGroup: str | None = None
+    correlationGroups: list[str] = Field(default_factory=list)
     modelVersion: str
     oddsObservedAt: str
     status: Literal["eligible", "rejected", "abstain"]
