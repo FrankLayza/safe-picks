@@ -68,6 +68,8 @@ class MarketCandidate(BaseModel):
 class CandidatesResponse(BaseModel):
     generatedAt: str
     source: Literal["development-mock", "forecasting-service"]
+    status: Literal["candidates_available", "abstain"]
+    abstentionCode: Literal["NO_ELIGIBLE_CANDIDATES"] | None = None
     sourceManifest: str | None = None
     candidates: list[MarketCandidate]
     warnings: list[str]
@@ -158,11 +160,15 @@ def today_candidates() -> CandidatesResponse:
         min_training_matches=int(os.getenv("MODEL_MIN_TRAINING_MATCHES", "20")),
         calibration_artifact=os.getenv("CALIBRATION_ARTIFACT_PATH") or None,
     )
+    candidates = [MarketCandidate.model_validate(candidate) for candidate in result.candidates]
+    available = any(candidate.status == "eligible" for candidate in candidates)
     return CandidatesResponse(
         generatedAt=result.generated_at.isoformat(),
         source="forecasting-service",
+        status="candidates_available" if available else "abstain",
+        abstentionCode=None if available else "NO_ELIGIBLE_CANDIDATES",
         sourceManifest=result.source_manifest,
-        candidates=[MarketCandidate.model_validate(candidate) for candidate in result.candidates],
+        candidates=candidates,
         warnings=list(result.warnings),
         diagnostics=list(result.diagnostics),
     )

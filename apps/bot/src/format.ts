@@ -14,5 +14,13 @@ export function formatSlip(draft: DraftSlip): string {
   const removals = draft.removedLegs?.length
     ? `\n\nRemoved legs\n${draft.removedLegs.map((removal) => `- ${removal.reason} [${removal.code}]`).join("\n")}`
     : "";
-  return `${title}\n\n${legs}${removals}\n\nCombined odds: ${draft.combinedOdds.toFixed(2)}\nEstimated joint probability: ${percent(draft.estimatedJointProbability)}\n\n${draft.warnings.join("\n")}`;
+  const abstention = draft.abstention
+    ? `\n\nAbstention: ${draft.abstention.reason} [${draft.abstention.code}]\nRejections: ${formatCounts(draft.abstention.rejectionCounts)}\nDiagnostics: ${draft.abstention.diagnosticCodes.join(", ") || "none"}`
+    : "";
+  return `${title}\n\n${legs}${removals}${abstention}\n\nCombined odds: ${draft.combinedOdds.toFixed(2)}\nEstimated joint probability: ${percent(draft.estimatedJointProbability)}\n\n${draft.warnings.join("\n")}`;
+}
+
+function formatCounts(counts: Record<string, number>): string {
+  const values = Object.entries(counts).sort(([left], [right]) => left.localeCompare(right));
+  return values.length ? values.map(([code, count]) => `${code}=${count}`).join(", ") : "none";
 }

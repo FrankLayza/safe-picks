@@ -11,7 +11,12 @@ export function conservativeJointProbability(probabilities: number[]): number {
   return Math.max(0, bounded.reduce((total, probability) => total + probability, 0) - (bounded.length - 1));
 }
 
-export function buildDraft(candidates: MarketCandidate[], targetOdds: number, maxLegs: number): DraftSlip {
+export interface SlipBuildContext {
+  sourceWarnings?: string[];
+  diagnosticCodes?: string[];
+}
+
+export function buildDraft(candidates: MarketCandidate[], targetOdds: number, maxLegs: number, context: SlipBuildContext = {}): DraftSlip {
   const selected: MarketCandidate[] = [];
   const usedFixtures = new Set<string>();
   const ranked = applyCorrelationFilter(candidates)
@@ -28,12 +33,14 @@ export function buildDraft(candidates: MarketCandidate[], targetOdds: number, ma
   const probabilities = selected.map((candidate) => candidate.modelProbability);
   const estimatedJointProbability = conservativeJointProbability(probabilities);
   const independenceProbability = independenceJointProbability(probabilities);
-  const warnings = [
+  const warnings = uniqueWarnings([
     "Model-backed development candidates are not betting advice.",
     "Joint probability uses the Frechet lower bound for unknown dependence; it is not a profitability estimate.",
     `Independence reference: ${(independenceProbability * 100).toFixed(1)}%.`,
-  ];
+    ...(context.sourceWarnings ?? []),
+  ]);
   if (selected.length === 0) {
+    const abstention = buildAbstention(candidates, context.diagnosticCodes ?? []);
     return {
       targetOdds,
       maxLegs,
@@ -42,8 +49,11 @@ export function buildDraft(candidates: MarketCandidate[], targetOdds: number, ma
       estimatedJointProbability: 0,
       independenceJointProbability: 0,
       jointProbabilityMethod: "empty_slip",
+      abstention,
+      sourceWarnings: context.sourceWarnings ?? [],
+      sourceDiagnosticCodes: context.diagnosticCodes ?? [],
       status: "abstain",
-      warnings: ["No qualifying bet.", "No eligible candidates passed the current selection rules."],
+      warnings: uniqueWarnings(["No qualifying bet.", abstention.reason, ...(context.sourceWarnings ?? [])]),
     };
   }
   if (combinedOdds < targetOdds) warnings.push("Target odds were not reached without adding lower-quality legs.");
@@ -56,6 +66,8 @@ export function buildDraft(candidates: MarketCandidate[], targetOdds: number, ma
     estimatedJointProbability,
     independenceJointProbability: independenceProbability,
     jointProbabilityMethod: selected.length === 1 ? "single_leg" : "frechet_lower_bound",
+    sourceWarnings: context.sourceWarnings ?? [],
+    sourceDiagnosticCodes: context.diagnosticCodes ?? [],
     status: "draft",
     warnings,
   };
@@ -76,11 +88,39 @@ export function trimDraft(draft: DraftSlip): DraftSlip {
   const removed = ordered[0];
   const candidates = draft.candidates.filter((candidate) => candidate.id !== removed.id);
   const removal = trimRemoval(removed);
-  const rebuilt = buildDraft(candidates, draft.targetOdds, draft.maxLegs);
+  const rebuilt = buildDraft(candidates, draft.targetOdds, draft.maxLegs, {
+    sourceWarnings: draft.sourceWarnings,
+    diagnosticCodes: draft.sourceDiagnosticCodes,
+  });
   return {
     ...rebuilt,
     removedLegs: [...(draft.removedLegs ?? []), removal],
   };
+}
+
+function buildAbstention(candidates: MarketCandidate[], diagnosticCodes: string[]): NonNullable<DraftSlip["abstention"]> {
+  const statusCounts = { eligible: 0, rejected: 0, abstain: 0 };
+  const rejectionCounts: Record<string, number> = {};
+  for (const candidate of candidates) {
+    statusCounts[candidate.status] += 1;
+    const code = candidate.rejectionCode ?? (candidate.status === "abstain" ? "MODEL_ABSTAINED" : "UNSPECIFIED_REJECTION");
+    if (candidate.status !== "eligible") rejectionCounts[code] = (rejectionCounts[code] ?? 0) + 1;
+  }
+  const reason = candidates.length === 0
+    ? "The forecasting service returned no candidate that could be evaluated."
+    : `All ${candidates.length} candidates were rejected or abstained by the current eligibility rules.`;
+  return {
+    code: "NO_ELIGIBLE_CANDIDATES",
+    reason,
+    candidateCount: candidates.length,
+    statusCounts,
+    rejectionCounts,
+    diagnosticCodes: [...new Set(diagnosticCodes)].sort(),
+  };
+}
+
+function uniqueWarnings(warnings: string[]): string[] {
+  return [...new Set(warnings.filter(Boolean))];
 }
 
 function trimRemoval(candidate: MarketCandidate): SlipRemoval {

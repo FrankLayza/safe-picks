@@ -91,13 +91,40 @@ describe("draft selection", () => {
   });
 
   it("abstains when no candidate is eligible", () => {
-    const draft = buildDraft([candidate({ status: "abstain" })], 2, 3);
+    const draft = buildDraft([
+      candidate({ id: "model-abstain", status: "abstain" }),
+      candidate({ id: "low-edge", fixtureId: "fixture-2", status: "rejected", rejectionCode: "LOW_EDGE" }),
+    ], 2, 3, {
+      sourceWarnings: ["Calibration artifact unavailable."],
+      diagnosticCodes: ["calibration_artifact_unavailable", "no_accepted_odds_manifest"],
+    });
 
     expect(draft.status).toBe("abstain");
     expect(draft.candidates).toHaveLength(0);
     expect(draft.warnings).toContain("No qualifying bet.");
+    expect(draft.warnings).toContain("Calibration artifact unavailable.");
     expect(draft.estimatedJointProbability).toBe(0);
     expect(draft.jointProbabilityMethod).toBe("empty_slip");
+    expect(draft.abstention).toMatchObject({
+      code: "NO_ELIGIBLE_CANDIDATES",
+      candidateCount: 2,
+      statusCounts: { eligible: 0, rejected: 1, abstain: 1 },
+      rejectionCounts: { MODEL_ABSTAINED: 1, LOW_EDGE: 1 },
+      diagnosticCodes: ["calibration_artifact_unavailable", "no_accepted_odds_manifest"],
+    });
+    expect(formatSlip(draft)).toContain("[NO_ELIGIBLE_CANDIDATES]");
+    expect(formatSlip(draft)).toContain("LOW_EDGE=1");
+    expect(formatSlip(draft)).toContain("calibration_artifact_unavailable");
+  });
+
+  it("explains when the forecasting service returns no candidates", () => {
+    const draft = buildDraft([], 2, 3, {
+      diagnosticCodes: ["odds_manifest_directory_missing"],
+    });
+
+    expect(draft.abstention?.candidateCount).toBe(0);
+    expect(draft.abstention?.reason).toContain("returned no candidate");
+    expect(draft.abstention?.diagnosticCodes).toEqual(["odds_manifest_directory_missing"]);
   });
 });
 

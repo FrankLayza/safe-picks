@@ -66,6 +66,8 @@ export interface MarketCandidate {
 export interface TodayCandidatesResponse {
   generatedAt: string;
   source: "development-mock" | "forecasting-service";
+  status?: "candidates_available" | "abstain";
+  abstentionCode?: "NO_ELIGIBLE_CANDIDATES";
   sourceManifest?: string;
   candidates: MarketCandidate[];
   warnings: string[];
@@ -109,11 +111,25 @@ export interface DraftSlip {
   independenceJointProbability?: number;
   jointProbabilityMethod?: "frechet_lower_bound" | "single_leg" | "empty_slip";
   removedLegs?: SlipRemoval[];
+  abstention?: SlipAbstention;
+  sourceWarnings?: string[];
+  sourceDiagnosticCodes?: string[];
   status: "draft" | "abstain";
   warnings: string[];
 }
 
 export type SlipRemovalCode = "LOWEST_RISK_ADJUSTED_RANK";
+
+export type SlipAbstentionCode = "NO_ELIGIBLE_CANDIDATES";
+
+export interface SlipAbstention {
+  code: SlipAbstentionCode;
+  reason: string;
+  candidateCount: number;
+  statusCounts: Record<CandidateStatus, number>;
+  rejectionCounts: Record<string, number>;
+  diagnosticCodes: string[];
+}
 
 export interface SlipRemoval {
   candidateId: string;

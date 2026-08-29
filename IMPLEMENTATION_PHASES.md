@@ -121,7 +121,7 @@ PRD coverage: FR-01 through FR-07, FR-11
 - [x] Detect correlated legs across markets and fixtures using explicit fixture and canonical-team keys; reject weaker overlaps with an auditable reason.
 - [x] Estimate joint slip probability conservatively with a documented Frechet lower bound and retain the independence product as a reference only.
 - [x] Make `trim` retain and display every removed leg with a machine-readable code and risk-adjusted explanation.
-- [ ] Return `No qualifying bet` when no candidate passes gates.
+- [x] Return `No qualifying bet` with a machine-readable abstention summary when no candidate passes model or decision gates.
 - [ ] Add candidate and slip decision audit records.
 
 Exit criteria: The selector chooses a market because it is the best validated opportunity, not because it has the highest raw probability or fills a target odds number.
@@ -180,7 +180,7 @@ Exit criteria: Release approval is evidence-based and does not depend on a headl
 | FR-04 Risk trimming | Phase 1, Phase 6 | `[x]` repeated trimming removes the current weakest leg and preserves structured explanations |
 | FR-05 Slip inspection | Phase 1 | `[x]` works with in-memory draft and tested calculations |
 | FR-06 Help and wording | Phase 1 | `[x]` command and warnings exist |
-| FR-07 Abstention | Phase 1, Phase 2, Phase 6 | `[~]` empty-set and gate rejection exist; production calibration gates remain unvalidated |
+| FR-07 Abstention | Phase 1, Phase 2, Phase 6 | `[x]` forecasting and slip layers fail closed with structured reasons; threshold performance still requires evaluation |
 | FR-08 Paper ledger | Phase 7 | `[ ]` |
 | FR-09 Permitted ingestion | Phase 3 | `[~]` results and current-odds jobs, identity, replay, quality checks, and local manifests exist; account/licence verification and durable storage remain |
 | FR-10 Leakage prevention | Phase 4, Phase 5 | `[~]` feature and walk-forward checks exist; broader market and provider coverage remain |

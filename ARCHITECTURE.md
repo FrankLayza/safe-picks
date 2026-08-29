@@ -129,6 +129,8 @@ Responsibilities:
 - Rank candidates by risk-adjusted value, not raw hit probability.
 - Return “No qualifying bet” when gates fail.
 
+The forecasting response exposes a top-level `abstain` status and `NO_ELIGIBLE_CANDIDATES` code when model-generation prerequisites fail. The slip layer independently aggregates candidate statuses, rejection codes, provider diagnostics, and source warnings so downstream abstention remains explicit after all TypeScript decision gates run.
+
 The current candidate ranking score starts with positive calibrated edge against the de-vigged bookmaker probability. It multiplies that edge by data completeness and by the complements of uncertainty, calibration error, and distribution shift. Raw edge, total quality penalty, and final ranking score remain separate response fields so downstream selection is reproducible.
 
 Short-priced selections receive an additional configurable value gate. The development defaults classify decimal odds at or below 1.40 as short-priced and require at least 0.04 de-vigged edge and 0.03 expected value. These are conservative engineering defaults, not empirically validated profitability thresholds.

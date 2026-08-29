@@ -40,6 +40,8 @@ Without a Telegram token, the bot intentionally exits with a configuration error
 
 Short-price eligibility can be configured with `SHORT_PRICE_MAX_ODDS`, `SHORT_PRICE_MIN_EDGE`, and `SHORT_PRICE_MIN_EXPECTED_VALUE`. The defaults are development safeguards and still require future-data validation.
 
+When model prerequisites or decision gates reject every candidate, the API and Telegram response return `No qualifying bet` with structured rejection counts and diagnostic codes rather than filling the slip with weaker selections.
+
 ## Status
 
 No configured production provider account, database, calibration export job, SportyBet integration, or real-money wagering is included.

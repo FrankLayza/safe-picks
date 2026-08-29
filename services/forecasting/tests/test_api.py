@@ -77,6 +77,8 @@ class ForecastingApiTests(unittest.TestCase):
         response = today_candidates()
 
         self.assertEqual(response.source, "forecasting-service")
+        self.assertEqual(response.status, "abstain")
+        self.assertEqual(response.abstentionCode, "NO_ELIGIBLE_CANDIDATES")
         self.assertTrue(response.diagnostics)
         self.assertNotEqual(response.source, "development-mock")
 

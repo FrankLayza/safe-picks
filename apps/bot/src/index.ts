@@ -27,7 +27,10 @@ async function main(): Promise<void> {
     try {
       const { targetOdds, maxLegs } = parseSafeBetsArgs(ctx.message?.text);
       const response = await getTodayCandidates(config.forecastingServiceUrl);
-      const draft = buildDraft(response.candidates, targetOdds, maxLegs);
+      const draft = buildDraft(response.candidates, targetOdds, maxLegs, {
+        sourceWarnings: response.warnings,
+        diagnosticCodes: response.diagnostics?.map(({ code }) => code),
+      });
       drafts.set(ctx.chat.id, draft);
       await ctx.reply(formatSlip(draft));
     } catch (error) {
