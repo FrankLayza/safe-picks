@@ -1,7 +1,7 @@
 # Safe Picks Project Context
 
 Status: Scaffold implemented / paper-trading validation pending
-Last updated: 2026-08-25
+Last updated: 2026-08-29
 
 ## Product
 
@@ -70,7 +70,8 @@ The project is not ready for real-money use until it demonstrates, on untouched 
 - The forecasting API exposes ingestion quality results and structured rejection diagnostics to downstream clients.
 - The first leakage-safe feature pipeline and Poisson/Dixon-Coles goals baseline are implemented for offline evaluation; no performance claim has been established.
 - A dependency-free chronological walk-forward evaluator and per-market isotonic calibration baseline are implemented; they report held-out metrics but do not establish profitability or production calibration.
-- No live provider, trained model, database, paper-trading ledger, or bookmaker integration has been implemented.
+- Scheduled The Odds API ingestion stores private raw snapshots, normalizes current events and quotes, links canonical teams and competitions to historical records, and retains event-level rejection diagnostics.
+- No configured production provider account, live model-backed candidate endpoint, database, paper-trading ledger, or bookmaker integration has been implemented.
 
 ## Key Risks
 

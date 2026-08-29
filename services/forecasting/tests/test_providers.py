@@ -52,6 +52,30 @@ class ProviderTests(unittest.TestCase):
         self.assertEqual(quotes[0].canonical_selection, "home fc")
         self.assertEqual(quotes[0].canonical_line, "none")
 
+    def test_odds_snapshot_retains_fixture_context_and_redacts_api_key(self):
+        payload = json.dumps(
+            [
+                {
+                    "id": "event-1",
+                    "sport_key": "soccer_epl",
+                    "sport_title": "EPL",
+                    "commence_time": "2026-08-23T18:00:00Z",
+                    "home_team": "Manchester United",
+                    "away_team": "Tottenham Hotspur",
+                    "bookmakers": [],
+                }
+            ]
+        ).encode()
+        adapter = OddsApiAdapter("secret-key", "https://example.test/v4")
+
+        parsed = adapter.parse_snapshot(payload, self.retrieved, "2627")
+        source_url = adapter.odds_source_url("soccer_epl")
+
+        self.assertEqual(parsed.events[0].competition, "EPL")
+        self.assertEqual(parsed.events[0].home_team, "Manchester United")
+        self.assertNotIn("secret-key", source_url)
+        self.assertNotIn("apiKey", source_url)
+
     def test_raw_store_writes_payload_and_metadata_with_checksum(self):
         with tempfile.TemporaryDirectory() as directory:
             snapshot = FileRawSnapshotStore(directory).save("test-provider", "https://example.test/data", b"payload", "text/plain", self.retrieved)

@@ -8,19 +8,31 @@ from typing import Any, Iterable
 
 from .models import FixtureRecord, OddsQuote
 
-IDENTITY_SCHEMA_VERSION = "identity-v1"
+IDENTITY_SCHEMA_VERSION = "identity-v2"
 
 _TEAM_ALIASES = {
+    "brighton": "brighton and hove albion",
+    "leeds": "leeds united",
+    "leicester": "leicester city",
+    "man city": "manchester city",
+    "man united": "manchester united",
     "man utd": "manchester united",
     "manchester utd": "manchester united",
+    "newcastle": "newcastle united",
+    "nott m forest": "nottingham forest",
+    "nottm forest": "nottingham forest",
     "spurs": "tottenham hotspur",
+    "tottenham": "tottenham hotspur",
+    "west ham": "west ham united",
     "wolves": "wolverhampton wanderers",
     "qpr": "queens park rangers",
 }
 
 _COMPETITION_ALIASES = {
     "e0": "england premier league",
+    "epl": "england premier league",
     "premier league": "england premier league",
+    "soccer epl": "england premier league",
     "english premier league": "england premier league",
 }
 
@@ -130,7 +142,7 @@ def _season_for(record: FixtureRecord, season: str | None) -> str:
 
 
 def resolve_fixture_identity(record: FixtureRecord, season: str | None = None) -> FixtureIdentity:
-    provider = normalize_identity_label(record.provider, "provider")
+    normalize_identity_label(record.provider, "provider")
     normalize_identity_label(record.source_event_id, "source_event_id")
     if not record.competition:
         raise IdentityResolutionError("missing_identity_field", "competition is required", {"field": "competition"})
@@ -150,7 +162,7 @@ def resolve_fixture_identity(record: FixtureRecord, season: str | None = None) -
     season_value = _season_for(record, season)
     fixture_id = _stable_id(
         "fixture",
-        (provider, competition_id, season_value, kickoff, home_id, away_id),
+        (competition_id, season_value, kickoff, home_id, away_id),
     )
     return FixtureIdentity(
         competition_id,

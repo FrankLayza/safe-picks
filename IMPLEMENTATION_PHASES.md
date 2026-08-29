@@ -1,7 +1,7 @@
 # Safe Picks Implementation Phases
 
 Status: In progress
-Last updated: 2026-08-25
+Last updated: 2026-08-29
 
 This plan is the implementation companion to [PRD.md](PRD.md). Every phase references PRD requirement IDs. A requirement is only complete when its acceptance criteria in the PRD are met and verified.
 
@@ -69,13 +69,14 @@ PRD coverage: FR-09, FR-10
 - [x] Select one permitted odds source for current snapshots: The Odds API, subject to account and plan verification.
 - [x] Define provider registry, license status, rate limits, and retention rules.
 - [x] Normalize Football-Data CSV fixtures/results/stats in the first scheduled ingestion job.
-- [~] Normalize The Odds API bookmaker quotes with event and bookmaker timestamps; scheduled ingestion is not implemented.
+- [x] Normalize scheduled The Odds API events and bookmaker quotes with event, retrieval, and bookmaker timestamps.
 - [x] Save immutable Football-Data raw payloads to the local file snapshot store and write normalized manifests; PostgreSQL/object storage is not implemented.
 - [x] Add canonical identity resolution for teams, competitions, fixtures, and markets.
 - [x] Add exact duplicate detection and conflicting correction checks for normalized manifests.
 - [x] Add freshness and broader missingness checks with machine-readable rejection reasons; identity and timestamp fields fail closed.
 - [x] Expose ingestion quality rejection codes through the forecasting service API for downstream diagnostics.
 - [x] Add historical replay so fixtures can be reconstructed as-of any forecast time from eligible normalized manifests.
+- [x] Link current odds events to canonical historical competitions and teams, rejecting ambiguous, stale, incomplete, started, or unmatched events with machine-readable reasons.
 
 Exit criteria: A historical fixture and odds record can be reproduced exactly from saved source snapshots and normalized into the canonical schema. Current adapter tests cover parsing and snapshots; provider licence/account verification and durable ingestion remain.
 
@@ -181,7 +182,7 @@ Exit criteria: Release approval is evidence-based and does not depend on a headl
 | FR-06 Help and wording | Phase 1 | `[x]` command and warnings exist |
 | FR-07 Abstention | Phase 1, Phase 2, Phase 6 | `[~]` empty-set and gate rejection exist; production calibration gates remain unvalidated |
 | FR-08 Paper ledger | Phase 7 | `[ ]` |
-| FR-09 Permitted ingestion | Phase 3 | `[~]` provider boundary, identity, replay, quality checks, and local manifests exist; licence and durable ingestion remain |
+| FR-09 Permitted ingestion | Phase 3 | `[~]` results and current-odds jobs, identity, replay, quality checks, and local manifests exist; account/licence verification and durable storage remain |
 | FR-10 Leakage prevention | Phase 4, Phase 5 | `[~]` feature and walk-forward checks exist; broader market and provider coverage remain |
 | FR-11 Model evaluation | Phase 5, Phase 7 | `[~]` baseline metrics/calibration report exists; comparative and paper-trading evaluation remain |
 | FR-12 SportyBet boundary | Phase 8 | `[ ]` |

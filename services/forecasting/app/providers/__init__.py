@@ -1,4 +1,4 @@
-from .models import FixtureRecord, OddsQuote, ProviderMetadata, RawSnapshot
+from .models import FixtureRecord, OddsEvent, OddsQuote, ProviderMetadata, RawSnapshot
 from .quality import IngestionQualityPolicy, IngestionValidationError, validate_ingestion_quality
 from .identity import (
     FixtureIdentity,
@@ -16,6 +16,7 @@ from .registry import ProviderRegistry, default_registry
 
 __all__ = [
     "FixtureRecord",
+    "OddsEvent",
     "OddsQuote",
     "ProviderMetadata",
     "RawSnapshot",

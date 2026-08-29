@@ -50,6 +50,19 @@ class FixtureRecord:
 
 
 @dataclass(frozen=True)
+class OddsEvent:
+    provider: str
+    source_event_id: str
+    sport_key: str
+    competition: str
+    season: str
+    home_team: str
+    away_team: str
+    match_start_at: datetime
+    retrieved_at: datetime
+
+
+@dataclass(frozen=True)
 class OddsQuote:
     provider: str
     source_event_id: str

@@ -23,6 +23,7 @@ Endpoints:
 
 - `FootballDataCsvAdapter` parses historical Football-Data.co.uk CSV files.
 - `OddsApiAdapter` parses The Odds API snapshots and can make authenticated requests when `ODDS_API_KEY` is set.
+- `OddsApiIngestionJob` schedules private current-event and odds snapshots, matches canonical competitions and teams against historical records, and writes normalized accepted events plus machine-readable rejection reasons.
 - `FileRawSnapshotStore` saves immutable payload bytes and checksum metadata.
 - `ProviderRegistry` records coverage, licensing status, rate-limit policy, and retention policy.
 - `FootballDataIngestionJob` downloads one configured league/season, stores the raw CSV, and writes a normalized JSON manifest.
@@ -53,5 +54,13 @@ The default is the England Premier League (`E0`, season `2526`). Override `FOOTB
 ```text
 python -m services.forecasting.app.ingest_football_data --interval-seconds 86400
 ```
+
+Run one current-odds ingestion after a historical manifest exists:
+
+```text
+python -m services.forecasting.app.ingest_odds_api --once
+```
+
+Set `ODDS_API_KEY`, `ODDS_API_SEASON`, and the existing `ODDS_API_*` market settings first. Scheduled mode defaults to every five minutes and can be changed with `ODDS_API_INGESTION_INTERVAL_SECONDS` or `--interval-seconds`. Raw snapshots and normalized manifests are private; stored source URLs never contain the API key.
 
 The mock response must not be presented as model performance or betting advice.

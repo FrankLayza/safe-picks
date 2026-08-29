@@ -1,7 +1,7 @@
 # Safe Picks Architecture
 
 Status: Proposed architecture
-Last updated: 2026-08-25
+Last updated: 2026-08-29
 
 ## System Overview
 
@@ -85,6 +85,7 @@ Current provider boundary:
 
 - `FootballDataCsvAdapter` for private historical CSV backfills.
 - `OddsApiAdapter` for authenticated current bookmaker snapshots.
+- `OddsApiIngestionJob` for scheduled current-event and market snapshots, canonical historical matching, quote freshness checks, and normalized rejection manifests.
 - `FileRawSnapshotStore` for immutable local payload/checksum storage during development.
 - `ProviderRegistry` for coverage, licensing, rate-limit, and retention metadata.
 - `identity.py` for deterministic canonical team, competition, fixture, and market IDs.
@@ -93,6 +94,8 @@ Current provider boundary:
 - Ingestion quality validation for snapshot freshness, required-field completeness, timestamp integrity, and configurable optional-field missingness.
 
 These adapters do not grant redistribution rights. Production ingestion still requires account verification, licensing review, freshness/missingness policy, and durable storage.
+
+Current odds manifests contain only events whose competition and both teams resolve to historical records and whose supported bookmaker market groups are complete and fresh. Ambiguous fixtures, unknown teams or competitions, started events, stale quotes, incomplete markets, unsupported markets, and malformed payload rows remain in machine-readable `rejections[]` entries. Stored source URLs exclude the API key.
 
 Historical replay only considers manifests whose provider retrieval timestamp is at or before the requested forecast timestamp. For each canonical fixture it selects the latest eligible observation and retains its manifest path and raw snapshot checksum so feature generation can be audited without using future data.
 

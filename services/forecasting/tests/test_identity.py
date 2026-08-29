@@ -39,6 +39,15 @@ class IdentityTests(unittest.TestCase):
         self.assertEqual(resolve_team_id("provider", "Home F.C."), resolve_team_id("provider", "home fc"))
         self.assertEqual(resolve_competition_id("provider", "E0"), resolve_competition_id("provider", "Premier League"))
 
+    def test_fixture_identity_is_stable_across_providers(self):
+        football_data = self.fixture(provider="football-data.co.uk", home_team="Man Utd")
+        odds_api = self.fixture(provider="the-odds-api", home_team="Manchester United")
+
+        self.assertEqual(
+            resolve_fixture_identity(football_data).canonical_fixture_id,
+            resolve_fixture_identity(odds_api).canonical_fixture_id,
+        )
+
     def test_reversed_home_and_away_have_different_fixture_ids(self):
         first = resolve_fixture_identity(self.fixture())
         reversed_fixture = resolve_fixture_identity(
