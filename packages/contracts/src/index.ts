@@ -106,6 +106,8 @@ export interface DraftSlip {
   candidates: MarketCandidate[];
   combinedOdds: number;
   estimatedJointProbability: number;
+  independenceJointProbability?: number;
+  jointProbabilityMethod?: "frechet_lower_bound" | "single_leg" | "empty_slip";
   status: "draft" | "abstain";
   warnings: string[];
 }

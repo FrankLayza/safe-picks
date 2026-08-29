@@ -141,7 +141,7 @@ Responsibilities:
 - Default to one leg per match.
 - Penalize or reject correlated selections.
 - Explain every accepted or removed leg.
-- Estimate joint probability conservatively; never assume independence without documenting it.
+- Estimate joint probability conservatively; the current MVP uses the Frechet lower bound for unknown dependence and exposes the independence product only as a reference.
 
 Candidates carry explicit correlation keys for their fixture and canonical home and away teams. The selector keeps the highest quality-adjusted rank for each occupied key and rejects weaker overlaps with `CORRELATED_SELECTION`. Competition-wide correlation is intentionally not inferred without validated evidence.
 

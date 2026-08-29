@@ -79,6 +79,7 @@ The project is not ready for real-money use until it demonstrates, on untouched 
 ## Key Risks
 
 - Accumulator probability falls rapidly as legs are added and independence is usually false.
+- Slip responses use a conservative Frechet lower bound for unknown dependence and label the independence product as a reference.
 - “Safe” wording can create false confidence and responsible-gambling risk.
 - Historical averages and head-to-head results can be misleading without opponent, venue, lineup, and league adjustments.
 - Sports-data licensing, odds history, and SportyBet integration are unresolved.

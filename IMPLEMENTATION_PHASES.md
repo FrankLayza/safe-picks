@@ -119,7 +119,7 @@ PRD coverage: FR-01 through FR-07, FR-11
 - [x] Reject short-price candidates unless they clear configurable stronger de-vigged edge and expected-value thresholds.
 - [x] Apply one-leg-per-match defaults in draft construction and verify with automated tests.
 - [x] Detect correlated legs across markets and fixtures using explicit fixture and canonical-team keys; reject weaker overlaps with an auditable reason.
-- [ ] Estimate joint slip probability conservatively.
+- [x] Estimate joint slip probability conservatively with a documented Frechet lower bound and retain the independence product as a reference only.
 - [ ] Make `trim` explain every removed leg.
 - [ ] Return `No qualifying bet` when no candidate passes gates.
 - [ ] Add candidate and slip decision audit records.

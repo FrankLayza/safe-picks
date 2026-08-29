@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MarketCandidate } from "@safe-picks/contracts";
 import { parseSafeBetsArgs } from "../src/commands.js";
-import { buildDraft, trimDraft } from "../src/slip.js";
+import { buildDraft, conservativeJointProbability, independenceJointProbability, trimDraft } from "../src/slip.js";
 
 function candidate(overrides: Partial<MarketCandidate> = {}): MarketCandidate {
   return {
@@ -46,6 +46,20 @@ describe("safe bets command parsing", () => {
 });
 
 describe("draft selection", () => {
+  it("uses a conservative Frechet lower bound and exposes the independence reference", () => {
+    expect(independenceJointProbability([0.8, 0.7])).toBeCloseTo(0.56);
+    expect(conservativeJointProbability([0.8, 0.7])).toBeCloseTo(0.5);
+
+    const draft = buildDraft([
+      candidate({ id: "one", fixtureId: "fixture-one", modelProbability: 0.8 }),
+      candidate({ id: "two", fixtureId: "fixture-two", modelProbability: 0.7 }),
+    ], 2, 2);
+
+    expect(draft.estimatedJointProbability).toBeCloseTo(0.5);
+    expect(draft.independenceJointProbability).toBeCloseTo(0.56);
+    expect(draft.jointProbabilityMethod).toBe("frechet_lower_bound");
+  });
+
   it("ranks eligible candidates by edge and ignores rejected candidates", () => {
     const draft = buildDraft([
       candidate({ id: "low", fixtureId: "fixture-low", estimatedEdge: 0.02 }),
@@ -82,6 +96,7 @@ describe("draft selection", () => {
     expect(draft.candidates).toHaveLength(0);
     expect(draft.warnings).toContain("No qualifying bet.");
     expect(draft.estimatedJointProbability).toBe(0);
+    expect(draft.jointProbabilityMethod).toBe("empty_slip");
   });
 });
 
