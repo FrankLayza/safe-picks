@@ -309,6 +309,7 @@ def _candidate_payload(
         "modelProbability": model_probability,
         "impliedProbability": implied,
         "estimatedEdge": edge,
+        "expectedValue": model_probability * quote.odds - 1.0,
         "qualityPenalty": quality_penalty,
         "rankingScore": ranking_score,
         "fairProbability": fair_probability,

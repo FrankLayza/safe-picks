@@ -153,6 +153,7 @@ class CandidateGenerationTests(unittest.TestCase):
             self.assertTrue(all(item["status"] == "eligible" for item in result.candidates))
             self.assertTrue(all(item["modelVersion"].endswith("+calibrated") for item in result.candidates))
             self.assertTrue(all(item["fairProbability"] > 0 for item in result.candidates))
+            self.assertTrue(all(item["expectedValue"] == item["modelProbability"] * item["odds"] - 1 for item in result.candidates))
             self.assertTrue(all(item["rankingScore"] <= max(0, item["estimatedEdge"]) for item in result.candidates))
             self.assertEqual(
                 [item["rankingScore"] for item in result.candidates],

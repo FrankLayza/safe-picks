@@ -35,6 +35,11 @@ async function parseServiceError(response: Response): Promise<ForecastingService
   return new ForecastingServiceError(`Forecasting service returned ${response.status}`, response.status, "FORECASTING_SERVICE_ERROR");
 }
 
+function environmentNumber(name: string, fallback: number): number {
+  const value = Number(process.env[name]);
+  return Number.isFinite(value) ? value : fallback;
+}
+
 export async function getTodayCandidates(baseUrl: string): Promise<TodayCandidatesResponse> {
   const response = await fetch(`${baseUrl}/v1/candidates/today`);
   if (!response.ok) throw await parseServiceError(response);
@@ -42,7 +47,10 @@ export async function getTodayCandidates(baseUrl: string): Promise<TodayCandidat
   const config = {
     ...defaultDecisionConfig,
     now: new Date(),
-    maxOddsAgeMinutes: Number(process.env.ODDS_MAX_AGE_MINUTES ?? defaultDecisionConfig.maxOddsAgeMinutes),
+    maxOddsAgeMinutes: environmentNumber("ODDS_MAX_AGE_MINUTES", defaultDecisionConfig.maxOddsAgeMinutes),
+    shortPriceMaxOdds: environmentNumber("SHORT_PRICE_MAX_ODDS", defaultDecisionConfig.shortPriceMaxOdds),
+    shortPriceMinEdge: environmentNumber("SHORT_PRICE_MIN_EDGE", defaultDecisionConfig.shortPriceMinEdge),
+    shortPriceMinExpectedValue: environmentNumber("SHORT_PRICE_MIN_EXPECTED_VALUE", defaultDecisionConfig.shortPriceMinExpectedValue),
   };
   const evaluated = payload.candidates.map((candidate) => evaluateCandidate(candidate, candidate.marketQuotes ?? [], config));
   return { ...payload, candidates: applyCorrelationFilter(evaluated) };

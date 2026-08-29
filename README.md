@@ -38,6 +38,8 @@ pnpm --filter @safe-picks/bot dev
 
 Without a Telegram token, the bot intentionally exits with a configuration error. The forecasting health and model-backed candidate endpoints do not require credentials, but candidate generation requires accepted local manifests and an optional calibration artifact for actionable status.
 
+Short-price eligibility can be configured with `SHORT_PRICE_MAX_ODDS`, `SHORT_PRICE_MIN_EDGE`, and `SHORT_PRICE_MIN_EXPECTED_VALUE`. The defaults are development safeguards and still require future-data validation.
+
 ## Status
 
 No configured production provider account, database, calibration export job, SportyBet integration, or real-money wagering is included.

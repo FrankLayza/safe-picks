@@ -63,6 +63,7 @@ The project is not ready for real-money use until it demonstrates, on untouched 
 - TypeScript Telegram bot scaffold exists with `/safe_bets`, `/trim`, `/slip`, and `/help`.
 - Python FastAPI forecasting boundary generates model-backed 1X2 and totals candidates from accepted odds manifests, with BTTS support when those quotes are available.
 - Candidate ranking uses de-vigged calibrated edge with explicit data-quality and uncertainty penalties.
+- Short-priced candidates must clear stronger configurable edge and expected-value gates.
 - Shared contracts, environment template, and workspace tooling exist.
 - Phase 3 provider boundary exists for Football-Data.co.uk historical CSVs, The Odds API snapshots, raw file snapshots, and provider metadata.
 - Development ingestion resolves canonical team, competition, fixture, and market identities and audits duplicate/completion rows while rejecting conflicting corrections.

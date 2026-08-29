@@ -131,6 +131,8 @@ Responsibilities:
 
 The current candidate ranking score starts with positive calibrated edge against the de-vigged bookmaker probability. It multiplies that edge by data completeness and by the complements of uncertainty, calibration error, and distribution shift. Raw edge, total quality penalty, and final ranking score remain separate response fields so downstream selection is reproducible.
 
+Short-priced selections receive an additional configurable value gate. The development defaults classify decimal odds at or below 1.40 as short-priced and require at least 0.04 de-vigged edge and 0.03 expected value. These are conservative engineering defaults, not empirically validated profitability thresholds.
+
 ### Slip Builder
 
 Responsibilities:

@@ -8,6 +8,9 @@ export interface DecisionConfig {
   maxCalibrationError: number;
   maxDistributionShift: number;
   minEdge: number;
+  shortPriceMaxOdds: number;
+  shortPriceMinEdge: number;
+  shortPriceMinExpectedValue: number;
 }
 
 export const defaultDecisionConfig: Omit<DecisionConfig, "now"> = {
@@ -17,6 +20,9 @@ export const defaultDecisionConfig: Omit<DecisionConfig, "now"> = {
   maxCalibrationError: 0.1,
   maxDistributionShift: 0.2,
   minEdge: 0.02,
+  shortPriceMaxOdds: 1.4,
+  shortPriceMinEdge: 0.04,
+  shortPriceMinExpectedValue: 0.03,
 };
 
 const supportedMarkets = new Set<MarketType>([
@@ -90,9 +96,17 @@ export function evaluateCandidate(
   if (!decision && fairProbability === undefined) decision = rejection("MISSING_MARKET_PEERS", "No de-vigged market probability exists for this selection.");
 
   const edge = fairProbability === undefined ? candidate.estimatedEdge : candidate.modelProbability - fairProbability;
-  const pricedCandidate = { ...candidate, estimatedEdge: edge };
+  const value = expectedValue(candidate.modelProbability, candidate.odds);
+  const pricedCandidate = { ...candidate, estimatedEdge: edge, expectedValue: value };
   const ranking = candidateRanking(pricedCandidate, !decision);
   if (!decision && edge < config.minEdge) decision = rejection("LOW_EDGE", "The calibrated probability does not clear the minimum value edge.");
+  else if (
+    !decision
+    && candidate.odds <= config.shortPriceMaxOdds
+    && (edge < config.shortPriceMinEdge || value < config.shortPriceMinExpectedValue)
+  ) {
+    decision = rejection("SHORT_PRICE_LOW_VALUE", "Short-priced selections must clear the stronger edge and expected-value thresholds.");
+  }
 
   if (decision) {
     return { ...pricedCandidate, ...candidateRanking(pricedCandidate, false), status: decision.status, rejectionCode: decision.rejectionCode, reason: decision.reason, fairProbability, fairOdds: fairProbability ? 1 / fairProbability : undefined };

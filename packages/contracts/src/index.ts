@@ -16,6 +16,7 @@ export type CandidateRejectionCode =
   | "UNCALIBRATED_MODEL"
   | "DISTRIBUTION_SHIFT"
   | "LOW_EDGE"
+  | "SHORT_PRICE_LOW_VALUE"
   | "CORRELATED_SELECTION"
   | "UNSUPPORTED_MARKET";
 
@@ -44,6 +45,7 @@ export interface MarketCandidate {
   modelProbability: number;
   impliedProbability: number;
   estimatedEdge: number;
+  expectedValue?: number;
   qualityPenalty?: number;
   rankingScore?: number;
   fairProbability?: number;

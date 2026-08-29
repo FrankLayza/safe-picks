@@ -116,8 +116,8 @@ PRD coverage: FR-01 through FR-07, FR-11
 
 - [~] Generate model-backed candidates for goals, BTTS, and result from the latest accepted odds manifest; double chance and corners remain disabled pending validated market/model support.
 - [x] Rank by de-vigged calibrated edge after explicit completeness, uncertainty, calibration-error, and distribution-shift penalties.
-- [ ] Reject short-price candidates with insufficient actionable value.
-- [ ] Apply one-leg-per-match defaults.
+- [x] Reject short-price candidates unless they clear configurable stronger de-vigged edge and expected-value thresholds.
+- [x] Apply one-leg-per-match defaults in draft construction and verify with automated tests.
 - [ ] Detect or penalize correlated legs across matches and markets.
 - [ ] Estimate joint slip probability conservatively.
 - [ ] Make `trim` explain every removed leg.

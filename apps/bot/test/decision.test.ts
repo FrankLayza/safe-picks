@@ -17,6 +17,9 @@ const config: DecisionConfig = {
   maxCalibrationError: 0.1,
   maxDistributionShift: 0.2,
   minEdge: 0.02,
+  shortPriceMaxOdds: 1.4,
+  shortPriceMinEdge: 0.04,
+  shortPriceMinExpectedValue: 0.03,
 };
 
 function candidate(overrides: Partial<MarketCandidate> = {}): MarketCandidate {
@@ -81,6 +84,7 @@ describe("candidate eligibility gates", () => {
     expect(result.rejectionCode).toBeUndefined();
     expect(result.fairProbability).toBeDefined();
     expect(result.estimatedEdge).toBeGreaterThan(config.minEdge);
+    expect(result.expectedValue).toBeCloseTo(expectedValue(result.modelProbability, result.odds));
     expect(result.rankingScore).toBeGreaterThan(0);
     expect(result.qualityPenalty).toBeGreaterThan(0);
   });
@@ -109,6 +113,32 @@ describe("candidate eligibility gates", () => {
     const result = evaluateCandidate(candidate({ modelProbability: 0.4 }), quotes, config);
 
     expect(result.rejectionCode).toBe("LOW_EDGE");
+  });
+
+  it("rejects a short-priced selection without stronger actionable value", () => {
+    const shortQuotes = [
+      { selection: "Home", odds: 1.3 },
+      { selection: "Draw", odds: 5 },
+      { selection: "Away", odds: 10 },
+    ];
+    const result = evaluateCandidate(candidate({ odds: 1.3, modelProbability: 0.75 }), shortQuotes, config);
+
+    expect(result.estimatedEdge).toBeGreaterThan(config.minEdge);
+    expect(result.rejectionCode).toBe("SHORT_PRICE_LOW_VALUE");
+    expect(result.rankingScore).toBe(0);
+  });
+
+  it("accepts a short-priced selection when edge and expected value both clear the stronger thresholds", () => {
+    const shortQuotes = [
+      { selection: "Home", odds: 1.3 },
+      { selection: "Draw", odds: 5 },
+      { selection: "Away", odds: 10 },
+    ];
+    const result = evaluateCandidate(candidate({ odds: 1.3, modelProbability: 0.82 }), shortQuotes, config);
+
+    expect(result.status).toBe("eligible");
+    expect(result.expectedValue).toBeGreaterThan(config.shortPriceMinExpectedValue);
+    expect(result.estimatedEdge).toBeGreaterThan(config.shortPriceMinEdge);
   });
 });
 
