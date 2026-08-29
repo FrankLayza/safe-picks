@@ -114,6 +114,9 @@ export interface DraftSlip {
   abstention?: SlipAbstention;
   sourceWarnings?: string[];
   sourceDiagnosticCodes?: string[];
+  sourceManifest?: string;
+  sourceGeneratedAt?: string;
+  source?: "development-mock" | "forecasting-service";
   status: "draft" | "abstain";
   warnings: string[];
 }
@@ -146,3 +149,64 @@ export interface SlipRemoval {
   code: SlipRemovalCode;
   reason: string;
 }
+
+export interface DecisionAuditProvenance {
+  schemaVersion: "decision-audit-v1";
+  producer: "safe-picks-bot";
+  requestId: string;
+  recordedAt: string;
+  decisionAt: string;
+  source: "development-mock" | "forecasting-service";
+  generatedAt?: string;
+  sourceManifest?: string;
+}
+
+export interface CandidateDecisionAuditRecord {
+  eventType: "candidate_decision";
+  eventId: string;
+  provenance: DecisionAuditProvenance;
+  candidateId: string;
+  fixtureId: string;
+  market: MarketType;
+  selection: string;
+  status: CandidateStatus;
+  rejectionCode?: string;
+  reason: string;
+  odds: number;
+  oddsObservedAt: string;
+  modelVersion: string;
+  modelProbability: number;
+  fairProbability?: number;
+  estimatedEdge: number;
+  expectedValue?: number;
+  rankingScore?: number;
+  uncertainty: number;
+  dataCompleteness: number;
+  calibrationError?: number;
+  distributionShift?: number;
+  correlationGroups: string[];
+}
+
+export interface SlipDecisionAuditRecord {
+  eventType: "slip_decision";
+  eventId: string;
+  provenance: DecisionAuditProvenance;
+  action: "build" | "trim";
+  status: DraftSlip["status"];
+  targetOdds: number;
+  maxLegs: number;
+  candidateCount: number;
+  selectedCandidateIds: string[];
+  removedLegs: SlipRemoval[];
+  combinedOdds: number;
+  estimatedJointProbability: number;
+  independenceJointProbability?: number;
+  jointProbabilityMethod?: DraftSlip["jointProbabilityMethod"];
+  abstentionCode?: SlipAbstentionCode;
+  warnings: string[];
+  sourceWarnings: string[];
+  sourceDiagnosticCodes: string[];
+  modelVersions: string[];
+}
+
+export type DecisionAuditRecord = CandidateDecisionAuditRecord | SlipDecisionAuditRecord;

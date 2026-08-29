@@ -7,6 +7,7 @@ function required(name: string): string {
 export const config = {
   token: process.env.TELEGRAM_BOT_TOKEN,
   forecastingServiceUrl: process.env.FORECASTING_SERVICE_URL ?? "http://localhost:8000",
+  auditLogPath: process.env.AUDIT_LOG_PATH ?? "data/audit/decisions.jsonl",
   allowedUserIds: new Set(
     (process.env.ALLOWED_TELEGRAM_USER_IDS ?? "")
       .split(",")

@@ -76,7 +76,8 @@ The project is not ready for real-money use until it demonstrates, on untouched 
 - The first leakage-safe feature pipeline and Poisson/Dixon-Coles goals baseline are implemented for offline evaluation; no performance claim has been established.
 - A dependency-free chronological walk-forward evaluator and per-market isotonic calibration baseline are implemented; they report held-out metrics but do not establish profitability or production calibration.
 - Scheduled The Odds API ingestion stores private raw snapshots, normalizes current events and quotes, links canonical teams and competitions to historical records, and retains event-level rejection diagnostics.
-- No configured production provider account, durable database, calibration export job, decision ledger, or bookmaker integration has been implemented.
+- The bot appends versioned candidate and slip decision audit records to a local JSONL file; this is provenance tracking only and does not yet settle paper trades.
+- No configured production provider account, durable database, calibration export job, paper-trade settlement ledger, or bookmaker integration has been implemented.
 
 ## Key Risks
 

@@ -149,6 +149,12 @@ Candidates carry explicit correlation keys for their fixture and canonical home 
 
 Each trim removes exactly one current lowest-ranked leg while retaining at least one leg. Removed-leg history stores the candidate identity, market, odds, rank, edge, uncertainty, completeness, machine-readable code, and user-readable explanation.
 
+### Decision Audit Store
+
+The MVP bot appends candidate and slip decisions to the path configured by `AUDIT_LOG_PATH` (default `data/audit/decisions.jsonl`). The JSONL records are append-only and use the shared `decision-audit-v1` schema. Candidate records retain the gate outcome, rejection code, odds timestamp, model version, probabilities, value metrics, uncertainty, completeness, and correlation keys. Slip records retain the build or trim action, selected and removed legs, target constraints, joint-probability estimates, warnings, diagnostic codes, and model versions. Each record includes a request ID, decision timestamp, source manifest, and source generation timestamp when available.
+
+This local store is an audit trail, not the Phase 7 settlement ledger. PostgreSQL migration and durable retention policy remain open.
+
 ### Paper-Trading Ledger
 
 Responsibilities:
@@ -176,8 +182,10 @@ Responsibilities:
 - `model_version`: market, training window, code version, calibration version
 - `forecast`: fixture, market, probabilities, uncertainty, agreement, created-at
 - `candidate`: forecast, odds quote, edge/value, eligibility status, rejection reason
+- `candidate_decision_audit`: versioned candidate gate decision and provenance
 - `slip`: user, target odds, status, created-at, final probability estimate
 - `slip_leg`: slip, candidate, rank, inclusion/removal reason
+- `slip_decision_audit`: versioned slip build/trim decision and provenance
 - `paper_trade`: candidate or slip, stake assumption, settlement, return, closing odds
 
 ## API Sketch
@@ -232,7 +240,7 @@ Ingestion quality failures use a stable error envelope: HTTP 422 with `error.cod
 
 ## Known Limitations
 
-- The architecture is partially implemented with local manifest storage rather than the planned durable database and object storage.
+- The architecture is partially implemented with local manifest and JSONL audit storage rather than the planned durable database and object storage.
 - Provider choices and licenses are not finalized.
 - SportyBet code generation is not verified.
 - Joint accumulator probability and correlation modeling require empirical validation.

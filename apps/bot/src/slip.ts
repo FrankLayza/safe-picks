@@ -14,6 +14,9 @@ export function conservativeJointProbability(probabilities: number[]): number {
 export interface SlipBuildContext {
   sourceWarnings?: string[];
   diagnosticCodes?: string[];
+  sourceManifest?: string;
+  sourceGeneratedAt?: string;
+  source?: "development-mock" | "forecasting-service";
 }
 
 export function buildDraft(candidates: MarketCandidate[], targetOdds: number, maxLegs: number, context: SlipBuildContext = {}): DraftSlip {
@@ -52,6 +55,9 @@ export function buildDraft(candidates: MarketCandidate[], targetOdds: number, ma
       abstention,
       sourceWarnings: context.sourceWarnings ?? [],
       sourceDiagnosticCodes: context.diagnosticCodes ?? [],
+      sourceManifest: context.sourceManifest,
+      sourceGeneratedAt: context.sourceGeneratedAt,
+      source: context.source,
       status: "abstain",
       warnings: uniqueWarnings(["No qualifying bet.", abstention.reason, ...(context.sourceWarnings ?? [])]),
     };
@@ -68,6 +74,9 @@ export function buildDraft(candidates: MarketCandidate[], targetOdds: number, ma
     jointProbabilityMethod: selected.length === 1 ? "single_leg" : "frechet_lower_bound",
     sourceWarnings: context.sourceWarnings ?? [],
     sourceDiagnosticCodes: context.diagnosticCodes ?? [],
+    sourceManifest: context.sourceManifest,
+    sourceGeneratedAt: context.sourceGeneratedAt,
+    source: context.source,
     status: "draft",
     warnings,
   };
@@ -91,6 +100,9 @@ export function trimDraft(draft: DraftSlip): DraftSlip {
   const rebuilt = buildDraft(candidates, draft.targetOdds, draft.maxLegs, {
     sourceWarnings: draft.sourceWarnings,
     diagnosticCodes: draft.sourceDiagnosticCodes,
+    sourceManifest: draft.sourceManifest,
+    sourceGeneratedAt: draft.sourceGeneratedAt,
+    source: draft.source,
   });
   return {
     ...rebuilt,

@@ -122,7 +122,7 @@ PRD coverage: FR-01 through FR-07, FR-11
 - [x] Estimate joint slip probability conservatively with a documented Frechet lower bound and retain the independence product as a reference only.
 - [x] Make `trim` retain and display every removed leg with a machine-readable code and risk-adjusted explanation.
 - [x] Return `No qualifying bet` with a machine-readable abstention summary when no candidate passes model or decision gates.
-- [ ] Add candidate and slip decision audit records.
+- [x] Add candidate and slip decision audit records with versioned provenance to the local append-only JSONL store; settlement remains a Phase 7 concern.
 
 Exit criteria: The selector chooses a market because it is the best validated opportunity, not because it has the highest raw probability or fills a target odds number.
 
