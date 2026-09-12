@@ -126,6 +126,16 @@ describe("draft selection", () => {
     expect(draft.abstention?.reason).toContain("returned no candidate");
     expect(draft.abstention?.diagnosticCodes).toEqual(["odds_manifest_directory_missing"]);
   });
+  it("stops when target odds is reached and does not overshoot to 30+ odds", () => {
+    const draft = buildDraft([
+      candidate({ id: "fixture-1", fixtureId: "fixture-1", odds: 2.45, rankingScore: 0.19 }),
+      candidate({ id: "fixture-2", fixtureId: "fixture-2", odds: 1.35, rankingScore: 0.18 }),
+      candidate({ id: "fixture-3", fixtureId: "fixture-3", odds: 10.0, rankingScore: 0.25 }),
+    ], 3, 3);
+
+    expect(draft.combinedOdds).toBeCloseTo(3.3075, 2);
+    expect(draft.candidates.map((c) => c.id)).toEqual(["fixture-1", "fixture-2"]);
+  });
 });
 
 describe("draft trimming", () => {
@@ -145,7 +155,7 @@ describe("draft trimming", () => {
       estimatedEdge: 0.01,
     });
     expect(trimmed.removedLegs?.[0].reason).toContain("lowest risk-adjusted rank");
-    expect(formatSlip(trimmed)).toContain("Removed legs");
+    expect(formatSlip(trimmed)).toContain("Removed fixtures");
     expect(formatSlip(trimmed)).toContain("[LOWEST_RISK_ADJUSTED_RANK]");
   });
 
@@ -165,6 +175,6 @@ describe("draft trimming", () => {
     expect(twice.removedLegs?.map(({ candidateId }) => candidateId)).toEqual(["weak", "medium"]);
     expect(final.candidates.map(({ id }) => id)).toEqual(["strong"]);
     expect(final.removedLegs).toHaveLength(2);
-    expect(final.warnings).toContain("Trim kept the final remaining leg.");
+    expect(final.warnings).toContain("Trim kept the final remaining fixture.");
   });
 });

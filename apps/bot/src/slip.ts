@@ -19,30 +19,96 @@ export interface SlipBuildContext {
   source?: "development-mock" | "forecasting-service";
 }
 
+function getCombinations<T>(items: T[], k: number): T[][] {
+  if (k === 0) return [[]];
+  if (items.length < k) return [];
+  const [first, ...rest] = items;
+  const withFirst = getCombinations(rest, k - 1).map((combo) => [first, ...combo]);
+  const withoutFirst = getCombinations(rest, k);
+  return [...withFirst, ...withoutFirst];
+}
+
+export function selectSlipCandidates(
+  candidates: MarketCandidate[],
+  targetOdds: number,
+  maxLegs: number
+): MarketCandidate[] {
+  // Take top candidates from distinct fixtures to keep combination space focused and fast
+  const distinctFixtureMap = new Map<string, MarketCandidate>();
+  for (const c of candidates) {
+    if (!distinctFixtureMap.has(c.fixtureId)) {
+      distinctFixtureMap.set(c.fixtureId, c);
+    }
+  }
+  const pool = Array.from(distinctFixtureMap.values()).slice(0, 12);
+
+  let bestCombo: MarketCandidate[] = [];
+  let bestScore = -Infinity;
+
+  const maxK = Math.min(maxLegs, pool.length);
+  for (let k = 1; k <= maxK; k++) {
+    const combos = getCombinations(pool, k);
+    for (const combo of combos) {
+      // Check correlation groups
+      const seenGroups = new Set<string>();
+      let conflict = false;
+      for (const item of combo) {
+        for (const group of item.correlationGroups ?? [item.fixtureId]) {
+          if (seenGroups.has(group)) {
+            conflict = true;
+            break;
+          }
+          seenGroups.add(group);
+        }
+        if (conflict) break;
+      }
+      if (conflict) continue;
+
+      const combinedOdds = combo.reduce((acc, item) => acc * item.odds, 1);
+      const qualityScore = combo.reduce((acc, item) => acc + rankingScore(item), 0);
+      const probabilities = combo.map((item) => item.modelProbability);
+      const jointProb = conservativeJointProbability(probabilities);
+
+      let score: number;
+      if (combinedOdds >= targetOdds) {
+        const overshootRatio = (combinedOdds - targetOdds) / targetOdds;
+        // Reward reaching target odds, penalize excessive overshoot so slips don't blow up
+        score = 10.0 + qualityScore + jointProb - 2.0 * overshootRatio - 0.05 * combo.length;
+      } else {
+        const underRatio = (targetOdds - combinedOdds) / targetOdds;
+        score = qualityScore + jointProb - 3.0 * underRatio;
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestCombo = combo;
+      }
+    }
+  }
+
+  // Fallback: if no valid combination found (e.g. all conflicts), greedily take up to maxLegs
+  if (bestCombo.length === 0 && candidates.length > 0) {
+    const fallback: MarketCandidate[] = [];
+    const used = new Set<string>();
+    for (const c of candidates) {
+      if (fallback.length >= maxLegs || used.has(c.fixtureId)) continue;
+      fallback.push(c);
+      used.add(c.fixtureId);
+      const currentOdds = fallback.reduce((acc, item) => acc * item.odds, 1);
+      if (currentOdds >= targetOdds) break;
+    }
+    return fallback;
+  }
+
+  return bestCombo.sort((a, b) => rankingScore(b) - rankingScore(a));
+}
+
 export function buildDraft(candidates: MarketCandidate[], targetOdds: number, maxLegs: number, context: SlipBuildContext = {}): DraftSlip {
-  const selected: MarketCandidate[] = [];
-  const usedFixtures = new Set<string>();
   const ranked = applyCorrelationFilter(candidates)
     .filter((candidate) => candidate.status === "eligible")
     .sort((a, b) => rankingScore(b) - rankingScore(a));
 
-  for (const candidate of ranked) {
-    if (selected.length >= maxLegs || usedFixtures.has(candidate.fixtureId)) continue;
-    selected.push(candidate);
-    usedFixtures.add(candidate.fixtureId);
-  }
-
-  const combinedOdds = selected.reduce((total, candidate) => total * candidate.odds, 1);
-  const probabilities = selected.map((candidate) => candidate.modelProbability);
-  const estimatedJointProbability = conservativeJointProbability(probabilities);
-  const independenceProbability = independenceJointProbability(probabilities);
-  const warnings = uniqueWarnings([
-    "Model-backed development candidates are not betting advice.",
-    "Joint probability uses the Frechet lower bound for unknown dependence; it is not a profitability estimate.",
-    `Independence reference: ${(independenceProbability * 100).toFixed(1)}%.`,
-    ...(context.sourceWarnings ?? []),
-  ]);
-  if (selected.length === 0) {
+  if (ranked.length === 0) {
     const abstention = buildAbstention(candidates, context.diagnosticCodes ?? []);
     return {
       targetOdds,
@@ -62,7 +128,19 @@ export function buildDraft(candidates: MarketCandidate[], targetOdds: number, ma
       warnings: uniqueWarnings(["No qualifying bet.", abstention.reason, ...(context.sourceWarnings ?? [])]),
     };
   }
-  if (combinedOdds < targetOdds) warnings.push("Target odds were not reached without adding lower-quality legs.");
+
+  const selected = selectSlipCandidates(ranked, targetOdds, maxLegs);
+  const combinedOdds = selected.reduce((total, candidate) => total * candidate.odds, 1);
+  const probabilities = selected.map((candidate) => candidate.modelProbability);
+  const estimatedJointProbability = conservativeJointProbability(probabilities);
+  const independenceProbability = independenceJointProbability(probabilities);
+  const warnings = uniqueWarnings([
+    "Model-backed development candidates are not betting advice.",
+    "Joint probability uses the Frechet lower bound for unknown dependence; it is not a profitability estimate.",
+    `Independence reference: ${(independenceProbability * 100).toFixed(1)}%.`,
+    ...(context.sourceWarnings ?? []),
+  ]);
+  if (combinedOdds < targetOdds) warnings.push("Target odds were not reached without adding lower-quality fixtures.");
 
   return {
     targetOdds,
@@ -84,7 +162,7 @@ export function buildDraft(candidates: MarketCandidate[], targetOdds: number, ma
 
 export function trimDraft(draft: DraftSlip): DraftSlip {
   if (draft.candidates.length <= 1) {
-    const warning = "Trim kept the final remaining leg.";
+    const warning = "Trim kept the final remaining fixture.";
     return {
       ...draft,
       warnings: draft.warnings.includes(warning) ? draft.warnings : [...draft.warnings, warning],

@@ -10,7 +10,7 @@ export function parseSafeBetsArgs(text: string | undefined): SafeBetsArgs {
   const targetOdds = Number(target);
   const maxLegs = Number(legs);
   if (!Number.isFinite(targetOdds) || targetOdds < 1 || !Number.isInteger(maxLegs) || maxLegs < 1 || maxLegs > 8) {
-    throw new Error("Usage: /safe_bets <target odds> <max legs>\nExample: /safe_bets 3.00 3");
+    throw new Error("Usage: /safe_bets <target odds> <max fixtures>\nExample: /safe_bets 3.00 3");
   }
   return { targetOdds, maxLegs };
 }

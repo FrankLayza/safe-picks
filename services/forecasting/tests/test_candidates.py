@@ -185,6 +185,33 @@ class CandidateGenerationTests(unittest.TestCase):
             self.assertEqual(result.candidates, ())
             self.assertIn("odds_manifest_directory_missing", {item["code"] for item in result.diagnostics})
 
+    def test_already_started_event_is_rejected(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._history_manifest(root)
+            self._odds_manifest(root)
+            result = generate_candidates(
+                root,
+                now=self.kickoff + timedelta(minutes=15),
+                min_training_matches=2,
+            )
+
+            self.assertEqual(result.candidates, ())
+            self.assertIn("odds_event_already_started", {item["code"] for item in result.diagnostics})
+
+    def test_event_outside_kickoff_horizon_is_rejected(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._history_manifest(root)
+            self._odds_manifest(root)
+            result = generate_candidates(
+                root,
+                now=self.as_of,
+                min_training_matches=2,
+                max_kickoff_hours=2.0,
+            )
+
+            self.assertEqual(result.candidates, ())
+            self.assertIn("fixture_outside_kickoff_horizon", {item["code"] for item in result.diagnostics})
+
 
 if __name__ == "__main__":
     unittest.main()

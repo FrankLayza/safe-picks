@@ -156,12 +156,15 @@ def health() -> dict[str, str]:
 
 
 @app.get("/v1/candidates/today", response_model=CandidatesResponse)
-def today_candidates() -> CandidatesResponse:
+def today_candidates(max_horizon_hours: float | None = None) -> CandidatesResponse:
+    env_horizon = os.getenv("CANDIDATES_HORIZON_HOURS")
+    horizon = max_horizon_hours if max_horizon_hours is not None else (float(env_horizon) if env_horizon else 36.0)
     result = generate_candidates(
         os.getenv("RAW_DATA_ROOT", "data/raw"),
         historical_league=os.getenv("FOOTBALL_DATA_LEAGUE") or None,
         min_training_matches=int(os.getenv("MODEL_MIN_TRAINING_MATCHES", "20")),
         calibration_artifact=os.getenv("CALIBRATION_ARTIFACT_PATH") or None,
+        max_kickoff_hours=horizon if horizon > 0 else None,
     )
     candidates = [MarketCandidate.model_validate(candidate) for candidate in result.candidates]
     available = any(candidate.status == "eligible" for candidate in candidates)

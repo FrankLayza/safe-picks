@@ -4,7 +4,7 @@ import json
 import os
 from bisect import bisect_left
 from dataclasses import dataclass, replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -45,6 +45,7 @@ def generate_candidates(
     min_training_matches: int = 20,
     model_config: PoissonModelConfig | None = None,
     calibration_artifact: str | Path | None = None,
+    max_kickoff_hours: float | None = None,
 ) -> CandidateGenerationResult:
     """Generate candidates using only data available at the odds snapshot time.
 
@@ -144,6 +145,8 @@ def generate_candidates(
             min_training_matches,
             model_config,
             calibrators,
+            generated_at=generated_at,
+            max_kickoff_hours=max_kickoff_hours,
         )
         candidates.extend(event_candidates)
         diagnostics.extend(event_diagnostics)
@@ -172,6 +175,8 @@ def _generate_event_candidates(
     min_training_matches: int,
     model_config: PoissonModelConfig | None,
     calibrators: dict[str, CalibrationSpec],
+    generated_at: datetime | None = None,
+    max_kickoff_hours: float | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     diagnostics: list[dict[str, Any]] = []
     source_event_id = str(event.get("source_event_id", ""))
@@ -184,6 +189,36 @@ def _generate_event_candidates(
     kickoff = _timestamp(event.get("match_start_at"), "event.match_start_at")
     if not fixture_id or not competition_id:
         return [], [_reason("missing_canonical_fixture_identity", {"source_event_id": source_event_id})]
+
+    if generated_at is not None and kickoff <= generated_at:
+        return [], [
+            _reason(
+                "odds_event_already_started",
+                {
+                    "source_event_id": source_event_id,
+                    "canonical_fixture_id": fixture_id,
+                    "kickoff": kickoff.isoformat(),
+                    "generated_at": generated_at.isoformat(),
+                },
+            )
+        ]
+
+    if (
+        generated_at is not None
+        and max_kickoff_hours is not None
+        and kickoff > generated_at + timedelta(hours=max_kickoff_hours)
+    ):
+        return [], [
+            _reason(
+                "fixture_outside_kickoff_horizon",
+                {
+                    "source_event_id": source_event_id,
+                    "canonical_fixture_id": fixture_id,
+                    "kickoff": kickoff.isoformat(),
+                    "max_kickoff_hours": max_kickoff_hours,
+                },
+            )
+        ]
 
     competition_history = [
         _canonicalize_fixture(item)
@@ -568,6 +603,8 @@ def _load_calibration_artifact(path: str | Path | None) -> tuple[dict[str, Calib
     if not path:
         return {}, [_reason("calibration_artifact_unavailable", {})]
     artifact_path = Path(path)
+    if not artifact_path.exists():
+        return {}, [_reason("calibration_artifact_unavailable", {"path": str(artifact_path)})]
     try:
         payload = json.loads(artifact_path.read_text(encoding="utf-8"))
         markets = payload.get("markets", {})

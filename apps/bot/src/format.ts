@@ -34,13 +34,24 @@ function marketLabel(market: string): string {
   return map[market] ?? market;
 }
 
-/** Format a UTC ISO string as HH:MM UTC */
+/** Format a UTC ISO string as 'Today HH:MM UTC' or 'Mon DD HH:MM UTC' */
 function kickoffTime(iso: string): string {
   try {
     const d = new Date(iso);
+    const now = new Date();
+    const isToday =
+      d.getUTCFullYear() === now.getUTCFullYear() &&
+      d.getUTCMonth() === now.getUTCMonth() &&
+      d.getUTCDate() === now.getUTCDate();
     const hh = String(d.getUTCHours()).padStart(2, "0");
     const mm = String(d.getUTCMinutes()).padStart(2, "0");
-    return `${hh}:${mm} UTC`;
+    if (isToday) {
+      return `Today ${hh}:${mm} UTC`;
+    }
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = months[d.getUTCMonth()];
+    const day = d.getUTCDate();
+    return `${month} ${day} ${hh}:${mm} UTC`;
   } catch {
     return iso;
   }
@@ -90,7 +101,7 @@ export function formatSlip(draft: DraftSlip, pendingTrades?: PaperTrade[]): stri
 
   const removalsSection =
     draft.removedLegs && draft.removedLegs.length > 0
-      ? `\n\n✂️ *Removed legs*\n${draft.removedLegs.map((r) => `• ${r.reason} \`[${r.code}]\``).join("\n")}`
+      ? `\n\n✂️ *Removed fixtures*\n${draft.removedLegs.map((r) => `• ${r.reason} \`[${r.code}]\``).join("\n")}`
       : "";
 
   const abstentionSection = draft.abstention
