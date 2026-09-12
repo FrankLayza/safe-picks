@@ -17,7 +17,15 @@ AGENTS.md                 Durable instructions for coding agents
 
 Copy `.env.example` to `.env`. For the current Telegram bot, `TELEGRAM_BOT_TOKEN` is required and `FORECASTING_SERVICE_URL` should point to the running forecasting service. `ALLOWED_TELEGRAM_USER_IDS` is optional for a local allowlist. The bot loads `.env` automatically; never commit the populated file.
 
-The Odds API ingestion variables are active development settings. Database, object storage, model-registry, and paper-trading variables remain placeholders until those integrations are implemented and approved.
+The Odds API ingestion variables are active development settings. Persistent drafts (`DRAFT_STORE_PATH`) and paper trading (`PAPER_TRADE_PATH`, `PAPER_TRADE_DEFAULT_STAKE`) are active local settings. Database, object storage, and model-registry variables remain placeholders until those integrations are implemented and approved.
+
+The Telegram bot supports the following commands:
+- `/safe_bets <target odds> <max legs>`: Evaluate today's matches, create a draft slip, and auto-open paper trades for eligible selections.
+- `/trim`: Remove the weakest or most correlated leg from the current draft.
+- `/slip`: View the current draft slip, combined odds, and open trade count.
+- `/settle win|loss|void` or `/settle <tradeId> win|loss|void`: Record match outcomes for paper trades.
+- `/report`: View aggregate paper-trading performance (P&L, win rate, ROI, market breakdown).
+- `/help`: Display commands and responsible-use reminders.
 
 Start the forecasting service first, then run the bot:
 
@@ -44,4 +52,4 @@ When model prerequisites or decision gates reject every candidate, the API and T
 
 ## Status
 
-No configured production provider account, database, calibration export job, paper-trade settlement ledger, SportyBet integration, or real-money wagering is included.
+No configured production provider account, database, calibration export job, SportyBet integration, or real-money wagering is included. Local per-user draft persistence, JSONL decision audit logging, and paper-trade settlement ledger are implemented.

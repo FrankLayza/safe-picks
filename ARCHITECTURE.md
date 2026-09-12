@@ -57,10 +57,11 @@ Permitted football data and odds APIs
 
 Responsibilities:
 
-- Parse `/safe_bets`, `/trim`, `/slip`, and `/help`.
-- Maintain a user draft-slip reference.
+- Parse `/safe_bets`, `/trim`, `/slip`, `/settle`, `/report`, and `/help`.
+- Maintain a persistent per-user draft-slip store on disk across restarts.
 - Ask for target odds and maximum legs.
 - Display candidate explanations, warnings, and abstentions.
+- Allow users to settle open paper trades (`/settle win|loss|void`) and inspect performance reports (`/report`).
 
 It must not calculate probabilities or silently change selections.
 
@@ -159,8 +160,10 @@ This local store is an audit trail, not the Phase 7 settlement ledger. PostgreSQ
 
 Responsibilities:
 
-- Record every candidate, selected leg, rejected leg, odds timestamp, model version, result, and settlement.
-- Support future-period performance reports by market, league, odds range, and confidence bucket.
+- Record each trade generated from qualifying drafts into a local append-only JSONL ledger (`PaperTradeStore`).
+- Link trades back to decision audit events (`slipEventId`), tracking decision timestamp, odds, model version, stake, and status.
+- Settle paper trades idempotently with unit profit/loss calculation (`settled_win`, `settled_loss`, `void`).
+- Provide aggregated performance reporting (`PaperTradeReport`) across total bets, settled bets, win rate, total return, profit/loss, ROI, and market-by-market breakdown (`report.ts`).
 
 ### Bookmaker Adapter Boundary
 
@@ -240,7 +243,7 @@ Ingestion quality failures use a stable error envelope: HTTP 422 with `error.cod
 
 ## Known Limitations
 
-- The architecture is partially implemented with local manifest and JSONL audit storage rather than the planned durable database and object storage.
+- The architecture is partially implemented with local manifest, persistent per-user JSON draft store, and JSONL audit and paper-trading storage rather than the planned durable database and object storage.
 - Provider choices and licenses are not finalized.
 - SportyBet code generation is not verified.
 - Joint accumulator probability and correlation modeling require empirical validation.
