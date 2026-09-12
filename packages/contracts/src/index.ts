@@ -210,3 +210,58 @@ export interface SlipDecisionAuditRecord {
 }
 
 export type DecisionAuditRecord = CandidateDecisionAuditRecord | SlipDecisionAuditRecord;
+
+// ---------------------------------------------------------------------------
+// Paper-trading ledger
+// ---------------------------------------------------------------------------
+
+export type PaperTradeStatus = "pending" | "settled_win" | "settled_loss" | "void";
+
+export interface PaperTrade {
+  /** Unique identifier for this paper trade record. */
+  tradeId: string;
+  /** Links back to the slip_decision audit event that generated this trade. */
+  slipEventId: string;
+  /** Telegram chat ID that owns this trade. */
+  chatId: number;
+  fixtureId: string;
+  kickoff: string;
+  homeTeam: string;
+  awayTeam: string;
+  market: MarketType;
+  selection: string;
+  /** Decimal odds at decision time. */
+  odds: number;
+  modelProbability: number;
+  estimatedEdge: number;
+  expectedValue?: number;
+  rankingScore?: number;
+  modelVersion: string;
+  oddsObservedAt: string;
+  /** Stake in units (default 1.0). */
+  stake: number;
+  status: PaperTradeStatus;
+  /** ISO timestamp when the trade was opened. */
+  openedAt: string;
+  /** ISO timestamp when the trade was settled (win/loss/void). */
+  settledAt?: string;
+  /** Profit/loss in units. Positive for wins, negative for losses, 0 for void. */
+  profitLoss?: number;
+}
+
+export interface PaperTradeReport {
+  generatedAt: string;
+  totalBets: number;
+  pendingBets: number;
+  settledBets: number;
+  wins: number;
+  losses: number;
+  voids: number;
+  winRate: number | null;
+  totalStake: number;
+  totalReturn: number;
+  profitLoss: number;
+  roi: number | null;
+  avgModelEdge: number | null;
+  byMarket: Record<string, { bets: number; wins: number; losses: number; voids: number; profitLoss: number }>;
+}

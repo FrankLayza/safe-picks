@@ -16,9 +16,11 @@ Football bettors who want a concise, evidence-based shortlist instead of manuall
 ## MVP Commands
 
 ```text
-/safe_bets  -> collect target odds, evaluate the day's eligible matches, build a candidate slip
+/safe_bets  -> collect target odds, evaluate the day's eligible matches, build a candidate slip and open paper trades
 /trim       -> remove weak, uncertain, stale, or correlated legs from the current draft
 /slip       -> display the current draft, odds, estimated joint probability, and warnings
+/settle     -> record match outcomes (win, loss, void) for open paper trades
+/report     -> display paper-trading performance report (P&L, win rate, ROI, by-market breakdown)
 /help       -> explain commands, limitations, and responsible use
 ```
 
@@ -76,8 +78,10 @@ The project is not ready for real-money use until it demonstrates, on untouched 
 - The first leakage-safe feature pipeline and Poisson/Dixon-Coles goals baseline are implemented for offline evaluation; no performance claim has been established.
 - A dependency-free chronological walk-forward evaluator and per-market isotonic calibration baseline are implemented; they report held-out metrics but do not establish profitability or production calibration.
 - Scheduled The Odds API ingestion stores private raw snapshots, normalizes current events and quotes, links canonical teams and competitions to historical records, and retains event-level rejection diagnostics.
-- The bot appends versioned candidate and slip decision audit records to a local JSONL file; this is provenance tracking only and does not yet settle paper trades.
-- No configured production provider account, durable database, calibration export job, paper-trade settlement ledger, or bookmaker integration has been implemented.
+- The bot appends versioned candidate and slip decision audit records to a local JSONL file for provenance tracking.
+- Per-user drafts are persistently saved to disk and survive bot restarts.
+- Paper-trading JSONL ledger records per-leg trades at decision time, supports `/settle` (win, loss, void), and `/report` generates aggregate P&L, win rate, ROI, and per-market summaries.
+- No configured production provider account, durable database, calibration export job, or bookmaker integration has been implemented.
 
 ## Key Risks
 

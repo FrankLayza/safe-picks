@@ -40,11 +40,11 @@ PRD coverage: FR-03, FR-04, FR-05, FR-06, partial FR-07
 - [x] Implement one-selection-per-fixture behavior.
 - [x] Implement basic edge-ranked draft construction.
 - [x] Implement basic trimming behavior.
-- [ ] Add persistent user drafts instead of in-memory drafts.
+- [x] Add persistent user drafts instead of in-memory drafts.
 - [ ] Return structured rejection reasons from the forecasting service.
 - [x] Add focused tests for command parsing and slip behavior.
 
-Exit criteria: Core commands work against the development service contract and parsing/selection/trimming/abstention behavior has automated tests. Core slice complete; persistence and service-level rejection contracts remain.
+Exit criteria: Core commands work against the development service contract and parsing/selection/trimming/abstention/draft-persistence behavior has automated tests. Core slice complete; service-level rejection contracts remain.
 
 ## Phase 2: Candidate and Decision Contracts
 
@@ -130,10 +130,10 @@ Exit criteria: The selector chooses a market because it is the best validated op
 
 PRD coverage: FR-08, FR-11, success metrics
 
-- [ ] Create paper-trade ledger for accepted and rejected candidates.
-- [ ] Record decision timestamp, available odds, closing odds, model version, and settlement.
+- [x] Create paper-trade ledger for accepted and rejected candidates.
+- [x] Record decision timestamp, available odds, closing odds, model version, and settlement.
 - [ ] Report log loss, Brier score, calibration, accuracy, and confusion matrices where applicable.
-- [ ] Report by league, season/window, market, odds range, and confidence bucket.
+- [~] Report by league, season/window, market, odds range, and confidence bucket.
 - [ ] Plot risk-coverage curves for abstention.
 - [ ] Simulate realistic slippage, costs, limits, and selection rules.
 - [ ] Run unseen-time-window and unseen-competition checks.
@@ -176,12 +176,12 @@ Exit criteria: Release approval is evidence-based and does not depend on a headl
 |---|---|---|
 | FR-01 Multi-market candidates | Phase 2, Phase 6 | `[~]` model-backed goals/BTTS/result generation exists; selector and additional markets remain open |
 | FR-02 Forecast metadata | Phase 2, Phase 5 | `[~]` contract and model provenance exist; production calibration artifacts remain operator-supplied |
-| FR-03 Safe-bets draft | Phase 1 | `[x]` works with model-backed candidates and tested quality-adjusted selection behavior |
+| FR-03 Safe-bets draft | Phase 1 | `[x]` works with model-backed candidates, persistent drafts, and tested quality-adjusted selection behavior |
 | FR-04 Risk trimming | Phase 1, Phase 6 | `[x]` repeated trimming removes the current weakest leg and preserves structured explanations |
-| FR-05 Slip inspection | Phase 1 | `[x]` works with in-memory draft and tested calculations |
+| FR-05 Slip inspection | Phase 1 | `[x]` works with persistent draft and tested calculations |
 | FR-06 Help and wording | Phase 1 | `[x]` command and warnings exist |
 | FR-07 Abstention | Phase 1, Phase 2, Phase 6 | `[x]` forecasting and slip layers fail closed with structured reasons; threshold performance still requires evaluation |
-| FR-08 Paper ledger | Phase 7 | `[ ]` |
+| FR-08 Paper ledger | Phase 7 | `[~]` JSONL ledger, `/settle`, and `/report` implemented in bot; automated ingestion and closing odds comparison remaining |
 | FR-09 Permitted ingestion | Phase 3 | `[~]` results and current-odds jobs, identity, replay, quality checks, and local manifests exist; account/licence verification and durable storage remain |
 | FR-10 Leakage prevention | Phase 4, Phase 5 | `[~]` feature and walk-forward checks exist; broader market and provider coverage remain |
 | FR-11 Model evaluation | Phase 5, Phase 7 | `[~]` baseline metrics/calibration report exists; comparative and paper-trading evaluation remain |
