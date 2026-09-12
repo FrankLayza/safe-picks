@@ -66,7 +66,7 @@ export function formatCandidate(candidate: MarketCandidate, index?: number): str
     `${prefix}*${candidate.homeTeam} vs ${candidate.awayTeam}*  _(${kickoff})_`,
     `   ${emoji} ${market}${line}: *${candidate.selection}* @ \`${candidate.odds.toFixed(2)}\``,
     `   Model ${pct(candidate.modelProbability)} | Edge ${sign(candidate.estimatedEdge)} | EV ${sign(candidate.expectedValue ?? 0)} | Rank ${pct(candidate.rankingScore ?? 0)}`,
-    `   _${candidate.reason}_`,
+    `   _${candidate.reason.replace(/_/g, "\\_")}_`,
   ].join("\n");
 }
 
@@ -90,13 +90,13 @@ export function formatSlip(draft: DraftSlip, pendingTrades?: PaperTrade[]): stri
 
   const removalsSection =
     draft.removedLegs && draft.removedLegs.length > 0
-      ? `\n\n✂️ *Removed legs*\n${draft.removedLegs.map((r) => `• ${r.reason} [${r.code}]`).join("\n")}`
+      ? `\n\n✂️ *Removed legs*\n${draft.removedLegs.map((r) => `• ${r.reason} \`[${r.code}]\``).join("\n")}`
       : "";
 
   const abstentionSection = draft.abstention
-    ? `\n\n🚫 *Abstention:* ${draft.abstention.reason} [${draft.abstention.code}]\n` +
+    ? `\n\n🚫 *Abstention:* ${draft.abstention.reason} \`[${draft.abstention.code}]\`\n` +
       `Rejections: ${formatCounts(draft.abstention.rejectionCounts)}\n` +
-      `Diagnostics: ${draft.abstention.diagnosticCodes.join(", ") || "none"}`
+      `Diagnostics: ${formatDiagnostics(draft.abstention.diagnosticCodes)}`
     : "";
 
   const pendingSection =
@@ -106,7 +106,7 @@ export function formatSlip(draft: DraftSlip, pendingTrades?: PaperTrade[]): stri
 
   const warnings =
     draft.warnings.length > 0
-      ? `\n\n⚠️ _${draft.warnings.join("\n⚠️ ")}_`
+      ? `\n\n⚠️ ${draft.warnings.map((w) => w.replace(/_/g, "\\_")).join("\n⚠️ ")}`
       : "";
 
   const parts = [title];
@@ -142,5 +142,9 @@ export function formatSettlement(settled: PaperTrade[], outcome: string): string
 
 function formatCounts(counts: Record<string, number>): string {
   const entries = Object.entries(counts).sort(([a], [b]) => a.localeCompare(b));
-  return entries.length > 0 ? entries.map(([code, count]) => `${code}=${count}`).join(", ") : "none";
+  return entries.length > 0 ? entries.map(([code, count]) => `\`${code}=${count}\``).join(", ") : "none";
+}
+
+function formatDiagnostics(codes: string[]): string {
+  return codes.length > 0 ? codes.map((c) => `\`${c}\``).join(", ") : "none";
 }
