@@ -28,7 +28,9 @@ def football_data_url(base_url: str, league: str, season: str) -> str:
     clean_season = season.strip()
     if not clean_league or not clean_season:
         raise ValueError("Football-Data league and season are required")
-    return f"{clean_base}/mmz{clean_season}/{clean_season}/{clean_league}.csv"
+    if "/mmz" in clean_base:
+        return f"{clean_base}/{clean_season}/{clean_league}.csv"
+    return f"{clean_base}/mmz4281/{clean_season}/{clean_league}.csv"
 
 
 def download_csv(url: str, timeout_seconds: int = 30) -> tuple[bytes, str]:

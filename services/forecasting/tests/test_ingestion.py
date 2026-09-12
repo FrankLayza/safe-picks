@@ -17,7 +17,7 @@ class IngestionTests(unittest.TestCase):
     def test_builds_league_url(self):
         self.assertEqual(
             football_data_url("https://example.test/", "e0", "2526"),
-            "https://example.test/mmz2526/2526/E0.csv",
+            "https://example.test/mmz4281/2526/E0.csv",
         )
 
     def test_run_once_downloads_snapshots_and_writes_normalized_manifest(self):
@@ -39,7 +39,7 @@ class IngestionTests(unittest.TestCase):
             manifest_path = job.run_once()
             manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8"))
 
-            self.assertEqual(requested_urls, ["https://example.test/mmz2526/2526/E0.csv"])
+            self.assertEqual(requested_urls, ["https://example.test/mmz4281/2526/E0.csv"])
             self.assertEqual(manifest["record_count"], 1)
             self.assertEqual(manifest["fixtures"][0]["home_team"], "Home FC")
             self.assertEqual(manifest["fixtures"][0]["home_corners"], 7)

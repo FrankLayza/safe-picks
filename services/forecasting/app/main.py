@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 import os
 from typing import Any, Literal
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -9,6 +10,8 @@ from pydantic import BaseModel, Field
 from .providers.models import FixtureRecord
 from .providers.quality import IngestionQualityPolicy, IngestionValidationError, validate_ingestion_quality
 from .candidates import generate_candidates
+
+load_dotenv()
 
 app = FastAPI(title="Safe Picks Forecasting Service", version="0.1.0")
 
